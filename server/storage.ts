@@ -2,8 +2,12 @@ import {
   AdminUser, InsertAdminUser, User, InsertUser, Lead, InsertLead,
   Destination, InsertDestination, TravelPackage, InsertTravelPackage,
   Booking, InsertBooking, AiKnowledge, InsertAiKnowledge,
-  ApiConfig, InsertApiConfig, TravelOperator, InsertTravelOperator
+  ApiConfig, InsertApiConfig, TravelOperator, InsertTravelOperator,
+  users, adminUsers, leads, destinations, travelPackages, bookings,
+  aiKnowledge, apiConfigs, travelOperators
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export interface IStorage {
@@ -516,4 +520,288 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  async getAdminUser(id: number): Promise<AdminUser | undefined> {
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
+    return user || undefined;
+  }
+
+  async getAdminUserByUsername(username: string): Promise<AdminUser | undefined> {
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.username, username));
+    return user || undefined;
+  }
+
+  async createAdminUser(adminUser: InsertAdminUser): Promise<AdminUser> {
+    const hashedPassword = await bcrypt.hash(adminUser.password, 10);
+    const [user] = await db
+      .insert(adminUsers)
+      .values({ ...adminUser, password: hashedPassword })
+      .returning();
+    return user;
+  }
+
+  async verifyAdminUser(username: string, password: string): Promise<AdminUser | null> {
+    const user = await this.getAdminUserByUsername(username);
+    if (!user) return null;
+    
+    const isValid = await bcrypt.compare(password, user.password);
+    return isValid ? user : null;
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    const [newUser] = await db
+      .insert(users)
+      .values({ ...user, password: hashedPassword })
+      .returning();
+    return newUser;
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async getLead(id: number): Promise<Lead | undefined> {
+    const [lead] = await db.select().from(leads).where(eq(leads.id, id));
+    return lead || undefined;
+  }
+
+  async getLeadsByUserId(userId: number): Promise<Lead[]> {
+    return await db.select().from(leads).where(eq(leads.userId, userId));
+  }
+
+  async createLead(lead: InsertLead): Promise<Lead> {
+    const [newLead] = await db
+      .insert(leads)
+      .values(lead)
+      .returning();
+    return newLead;
+  }
+
+  async updateLead(id: number, updates: Partial<InsertLead>): Promise<Lead | undefined> {
+    const [lead] = await db
+      .update(leads)
+      .set(updates)
+      .where(eq(leads.id, id))
+      .returning();
+    return lead || undefined;
+  }
+
+  async getAllLeads(): Promise<Lead[]> {
+    return await db.select().from(leads);
+  }
+
+  async getDestination(id: number): Promise<Destination | undefined> {
+    const [destination] = await db.select().from(destinations).where(eq(destinations.id, id));
+    return destination || undefined;
+  }
+
+  async getAllDestinations(): Promise<Destination[]> {
+    return await db.select().from(destinations);
+  }
+
+  async getActiveDestinations(): Promise<Destination[]> {
+    return await db.select().from(destinations).where(eq(destinations.status, 'active'));
+  }
+
+  async createDestination(destination: InsertDestination): Promise<Destination> {
+    const [newDestination] = await db
+      .insert(destinations)
+      .values(destination)
+      .returning();
+    return newDestination;
+  }
+
+  async updateDestination(id: number, updates: Partial<InsertDestination>): Promise<Destination | undefined> {
+    const [destination] = await db
+      .update(destinations)
+      .set(updates)
+      .where(eq(destinations.id, id))
+      .returning();
+    return destination || undefined;
+  }
+
+  async deleteDestination(id: number): Promise<boolean> {
+    const result = await db.delete(destinations).where(eq(destinations.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getTravelPackage(id: number): Promise<TravelPackage | undefined> {
+    const [pkg] = await db.select().from(travelPackages).where(eq(travelPackages.id, id));
+    return pkg || undefined;
+  }
+
+  async getAllTravelPackages(): Promise<TravelPackage[]> {
+    return await db.select().from(travelPackages);
+  }
+
+  async getTravelPackagesByDestination(destinationId: number): Promise<TravelPackage[]> {
+    return await db.select().from(travelPackages).where(eq(travelPackages.destinationId, destinationId));
+  }
+
+  async createTravelPackage(travelPackage: InsertTravelPackage): Promise<TravelPackage> {
+    const [newPackage] = await db
+      .insert(travelPackages)
+      .values(travelPackage)
+      .returning();
+    return newPackage;
+  }
+
+  async updateTravelPackage(id: number, updates: Partial<InsertTravelPackage>): Promise<TravelPackage | undefined> {
+    const [pkg] = await db
+      .update(travelPackages)
+      .set(updates)
+      .where(eq(travelPackages.id, id))
+      .returning();
+    return pkg || undefined;
+  }
+
+  async deleteTravelPackage(id: number): Promise<boolean> {
+    const result = await db.delete(travelPackages).where(eq(travelPackages.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getBooking(id: number): Promise<Booking | undefined> {
+    const [booking] = await db.select().from(bookings).where(eq(bookings.id, id));
+    return booking || undefined;
+  }
+
+  async getBookingsByUserId(userId: number): Promise<Booking[]> {
+    return await db.select().from(bookings).where(eq(bookings.userId, userId));
+  }
+
+  async getAllBookings(): Promise<Booking[]> {
+    return await db.select().from(bookings);
+  }
+
+  async createBooking(booking: InsertBooking): Promise<Booking> {
+    const [newBooking] = await db
+      .insert(bookings)
+      .values(booking)
+      .returning();
+    return newBooking;
+  }
+
+  async updateBooking(id: number, updates: Partial<InsertBooking>): Promise<Booking | undefined> {
+    const [booking] = await db
+      .update(bookings)
+      .set(updates)
+      .where(eq(bookings.id, id))
+      .returning();
+    return booking || undefined;
+  }
+
+  async getAiKnowledge(id: number): Promise<AiKnowledge | undefined> {
+    const [knowledge] = await db.select().from(aiKnowledge).where(eq(aiKnowledge.id, id));
+    return knowledge || undefined;
+  }
+
+  async getAllAiKnowledge(): Promise<AiKnowledge[]> {
+    return await db.select().from(aiKnowledge);
+  }
+
+  async getAiKnowledgeByCategory(category: string): Promise<AiKnowledge[]> {
+    return await db.select().from(aiKnowledge).where(eq(aiKnowledge.category, category));
+  }
+
+  async createAiKnowledge(knowledge: InsertAiKnowledge): Promise<AiKnowledge> {
+    const [newKnowledge] = await db
+      .insert(aiKnowledge)
+      .values(knowledge)
+      .returning();
+    return newKnowledge;
+  }
+
+  async updateAiKnowledge(id: number, updates: Partial<InsertAiKnowledge>): Promise<AiKnowledge | undefined> {
+    const [knowledge] = await db
+      .update(aiKnowledge)
+      .set(updates)
+      .where(eq(aiKnowledge.id, id))
+      .returning();
+    return knowledge || undefined;
+  }
+
+  async deleteAiKnowledge(id: number): Promise<boolean> {
+    const result = await db.delete(aiKnowledge).where(eq(aiKnowledge.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getApiConfig(id: number): Promise<ApiConfig | undefined> {
+    const [config] = await db.select().from(apiConfigs).where(eq(apiConfigs.id, id));
+    return config || undefined;
+  }
+
+  async getAllApiConfigs(): Promise<ApiConfig[]> {
+    return await db.select().from(apiConfigs);
+  }
+
+  async getApiConfigByProvider(providerName: string): Promise<ApiConfig | undefined> {
+    const [config] = await db.select().from(apiConfigs).where(eq(apiConfigs.providerName, providerName));
+    return config || undefined;
+  }
+
+  async createApiConfig(apiConfig: InsertApiConfig): Promise<ApiConfig> {
+    const [newConfig] = await db
+      .insert(apiConfigs)
+      .values(apiConfig)
+      .returning();
+    return newConfig;
+  }
+
+  async updateApiConfig(id: number, updates: Partial<InsertApiConfig>): Promise<ApiConfig | undefined> {
+    const [config] = await db
+      .update(apiConfigs)
+      .set(updates)
+      .where(eq(apiConfigs.id, id))
+      .returning();
+    return config || undefined;
+  }
+
+  async getTravelOperator(id: number): Promise<TravelOperator | undefined> {
+    const [operator] = await db.select().from(travelOperators).where(eq(travelOperators.id, id));
+    return operator || undefined;
+  }
+
+  async getAllTravelOperators(): Promise<TravelOperator[]> {
+    return await db.select().from(travelOperators);
+  }
+
+  async createTravelOperator(travelOperator: InsertTravelOperator): Promise<TravelOperator> {
+    const [newOperator] = await db
+      .insert(travelOperators)
+      .values(travelOperator)
+      .returning();
+    return newOperator;
+  }
+
+  async updateTravelOperator(id: number, updates: Partial<InsertTravelOperator>): Promise<TravelOperator | undefined> {
+    const [operator] = await db
+      .update(travelOperators)
+      .set(updates)
+      .where(eq(travelOperators.id, id))
+      .returning();
+    return operator || undefined;
+  }
+}
+
+export const storage = new DatabaseStorage();

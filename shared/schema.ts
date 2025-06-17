@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, decimal, timestamp } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -202,3 +203,39 @@ export type ApiConfig = typeof apiConfigs.$inferSelect;
 export type InsertApiConfig = z.infer<typeof insertApiConfigSchema>;
 export type TravelOperator = typeof travelOperators.$inferSelect;
 export type InsertTravelOperator = z.infer<typeof insertTravelOperatorSchema>;
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  leads: many(leads),
+  bookings: many(bookings),
+}));
+
+export const leadsRelations = relations(leads, ({ one }) => ({
+  user: one(users, {
+    fields: [leads.userId],
+    references: [users.id],
+  }),
+}));
+
+export const destinationsRelations = relations(destinations, ({ many }) => ({
+  travelPackages: many(travelPackages),
+}));
+
+export const travelPackagesRelations = relations(travelPackages, ({ one, many }) => ({
+  destination: one(destinations, {
+    fields: [travelPackages.destinationId],
+    references: [destinations.id],
+  }),
+  bookings: many(bookings),
+}));
+
+export const bookingsRelations = relations(bookings, ({ one }) => ({
+  user: one(users, {
+    fields: [bookings.userId],
+    references: [users.id],
+  }),
+  travelPackage: one(travelPackages, {
+    fields: [bookings.packageId],
+    references: [travelPackages.id],
+  }),
+}));
