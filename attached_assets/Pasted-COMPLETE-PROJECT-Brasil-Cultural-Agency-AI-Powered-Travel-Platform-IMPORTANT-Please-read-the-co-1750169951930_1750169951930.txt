@@ -1,0 +1,390 @@
+COMPLETE PROJECT: Brasil Cultural Agency - AI-Powered Travel Platform
+
+IMPORTANT: Please read the complete Product Requirements Document and Technical Schema below before starting development. This provides essential context for building a production-ready system.
+
+---
+
+PRODUCT REQUIREMENTS DOCUMENT:
+
+MISSION: Create an AI-powered travel platform that transforms how Americans experience Brazil through authentic cultural immersion, combining intelligent conversation with real-time booking capabilities.
+
+TARGET USERS:
+- Primary: Americans aged 25-45 seeking authentic cultural experiences
+- Secondary: Travel enthusiasts interested in transformative journeys  
+- Admin: Travel agency operators managing content and bookings
+
+SYSTEM ARCHITECTURE OVERVIEW:
+Frontend Layer: Landing Page + Admin Panel + Package Builder + User Interface
+Application Layer: AI Engine + API Router + Authentication + MCP Client
+Data Layer: SQLite Database + In-Memory Cache
+External APIs: Amadeus + Skyscanner + Booking.com + Email Service
+
+DATABASE SCHEMA RELATIONSHIPS:
+- ADMIN_USERS: Admin authentication and management
+- USERS: Customer accounts and profiles from quiz
+- LEADS: Generated from quiz with profile scoring
+- DESTINATIONS: Admin-managed travel destinations
+- TRAVEL_PACKAGES: Admin-created package offerings
+- BOOKINGS: Real-time booking records with API responses
+- AI_KNOWLEDGE: Admin-configurable AI intelligence
+- API_CONFIGS: API management and monitoring
+- TRAVEL_OPERATORS: Partner airline/hotel relationships
+
+USER JOURNEY FLOW:
+1. User visits landing page → AI conversation starts
+2. Profile detection (Cultural/Adventure/Spiritual/Luxury)
+3. Budget and dates discussion
+4. Real-time API calls to flights/hotels/experiences
+5. Dynamic package creation with pricing
+6. Package presentation and decision
+7. Email capture and credential generation
+8. Booking process and confirmation
+
+AI CONVERSATION ARCHITECTURE:
+Input: User Message → Keyword Detection → Conversation Context
+Knowledge Base: Destinations + Profiles + Objections + Templates
+Real-time Data: Flight Prices + Hotel Availability + Package Calculator
+Output: AI Response Engine → Personalization → Final Response
+
+ADMIN PANEL STRUCTURE:
+- Authentication: Login + Session Management
+- Dashboard: Analytics + Quick Actions + Activity Feed
+- Content Management: Destinations + Experiences + Packages + Media
+- AI Intelligence: Knowledge Editor + Templates + Keywords + A/B Testing
+- API Management: Configuration + Monitoring + Cost Tracking + Fallbacks
+- Business Intelligence: Booking Analytics + Revenue + Conversion Funnel
+
+API INTEGRATION WORKFLOW:
+User request → AI processes → MCP coordinates multiple APIs → 
+Amadeus/Skyscanner (flights) + Booking.com (hotels) → 
+Results combined → Pricing calculated → Package presented → 
+Booking initiated → Confirmations saved → User notified
+
+PACKAGE BUILDER WORKFLOW:
+Admin selects destination → Sets duration → Chooses services →
+Configures flights/hotels/experiences → Calculates pricing →
+Applies markup → Assigns profiles → Preview → Save → Activate for AI
+
+---
+
+TECHNICAL IMPLEMENTATION:
+
+ADMIN CREDENTIALS:
+Username: Lucas Nascimento
+Password: magaiver123
+
+TECHNICAL STACK:
+- Frontend: HTML/CSS/JS vanilla (responsive)
+- Backend: Node.js + Express + SQLite
+- Database: SQLite native (NO external databases)
+- Email: Nodemailer with SMTP
+- AI: Advanced context-aware travel consultant
+- MCP: Model Context Protocol for API integrations
+- APIs: Flight booking, hotel reservations, car rentals
+
+FOLDER STRUCTURE:
+/brasil-cultural-agency/
+├── /public/
+│   ├── index.html (landing page)
+│   ├── admin.html (admin panel)
+│   ├── packages.html (package builder)
+│   ├── booking.html (booking interface)
+│   ├── login.html (admin login)
+│   ├── style.css (main styles)
+│   ├── admin.css (admin styles)
+│   ├── script.js (landing page logic)
+│   ├── admin.js (admin panel logic)
+│   ├── packages.js (package builder)
+│   └── /assets/
+├── /server/
+│   ├── app.js (main server)
+│   ├── database.js (SQLite setup)
+│   ├── email.js (email system)
+│   ├── auth.js (authentication)
+│   ├── routes.js (API endpoints)
+│   ├── mcp-client.js (MCP integrations)
+│   ├── travel-apis.js (travel API connectors)
+│   └── ai-engine.js (AI travel consultant)
+├── /mcp-integrations/
+│   ├── amadeus-connector.js
+│   ├── skyscanner-connector.js
+│   ├── booking-connector.js
+│   ├── expedia-connector.js
+│   └── sabre-connector.js
+├── package.json
+├── database.db (auto-created)
+└── README.md
+
+COMPLETE DATABASE SCHEMA (SQLite):
+
+-- Admin users
+CREATE TABLE IF NOT EXISTS admin_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Quiz users
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    profile_type TEXT,
+    quiz_responses TEXT,
+    conversation_log TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Leads and bookings
+CREATE TABLE IF NOT EXISTS leads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    profile_score INTEGER,
+    interest_level TEXT,
+    recommended_destinations TEXT,
+    estimated_budget DECIMAL(10,2),
+    travel_dates TEXT,
+    booking_status TEXT DEFAULT 'inquiry',
+    status TEXT DEFAULT 'new',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+-- Destinations (admin editable)
+CREATE TABLE IF NOT EXISTS destinations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    best_months TEXT,
+    ideal_profiles TEXT,
+    price_range_min DECIMAL(10,2),
+    price_range_max DECIMAL(10,2),
+    selling_points TEXT,
+    main_image_url TEXT,
+    airport_codes TEXT,
+    hotel_search_terms TEXT,
+    status TEXT DEFAULT 'active',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Travel packages (admin created)
+CREATE TABLE IF NOT EXISTS travel_packages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    destination_id INTEGER,
+    duration_days INTEGER,
+    base_price DECIMAL(10,2),
+    included_services TEXT,
+    profile_targets TEXT,
+    flight_included BOOLEAN DEFAULT 1,
+    hotel_included BOOLEAN DEFAULT 1,
+    experiences_included TEXT,
+    markup_percentage DECIMAL(5,2),
+    status TEXT DEFAULT 'active',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (destination_id) REFERENCES destinations (id)
+);
+
+-- Real-time bookings
+CREATE TABLE IF NOT EXISTS bookings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    package_id INTEGER,
+    flight_booking_ref TEXT,
+    hotel_booking_ref TEXT,
+    total_price DECIMAL(10,2),
+    booking_date DATE,
+    travel_date_start DATE,
+    travel_date_end DATE,
+    passengers_count INTEGER,
+    special_requests TEXT,
+    payment_status TEXT DEFAULT 'pending',
+    booking_status TEXT DEFAULT 'confirmed',
+    api_responses TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (package_id) REFERENCES travel_packages (id)
+);
+
+-- AI conversation intelligence (admin editable)
+CREATE TABLE IF NOT EXISTS ai_knowledge (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category TEXT NOT NULL,
+    topic TEXT NOT NULL,
+    context TEXT,
+    response_template TEXT,
+    keywords TEXT,
+    data_sources TEXT,
+    priority INTEGER DEFAULT 1,
+    usage_count INTEGER DEFAULT 0,
+    effectiveness_score DECIMAL(3,2) DEFAULT 0.0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- API configurations (admin managed)
+CREATE TABLE IF NOT EXISTS api_configs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    provider_name TEXT NOT NULL,
+    api_type TEXT NOT NULL,
+    endpoint_url TEXT,
+    api_key_field TEXT,
+    rate_limit INTEGER,
+    cost_per_call DECIMAL(8,4),
+    commission_rate DECIMAL(5,2),
+    markup_percentage DECIMAL(5,2),
+    status TEXT DEFAULT 'active',
+    last_used DATETIME,
+    success_rate DECIMAL(5,2) DEFAULT 100.0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Travel operators and consolidators
+CREATE TABLE IF NOT EXISTS travel_operators (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_name TEXT NOT NULL,
+    operator_type TEXT,
+    api_provider TEXT,
+    coverage_areas TEXT,
+    specialties TEXT,
+    commission_structure TEXT,
+    booking_terms TEXT,
+    contact_info TEXT,
+    partnership_level TEXT,
+    status TEXT DEFAULT 'active',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+FUNCTIONAL SPECIFICATIONS:
+
+LANDING PAGE - AI CONVERSATION:
+- Welcome: "Hi! I'm your Brazil transformation consultant. What draws you to Brazil?"
+- Progressive questions based on keyword detection
+- Profile assignment: Cultural Seeker, Adventure Spirit, Spiritual Journey, Luxury Traveler
+- Real-time API integration for flights and hotels
+- Dynamic package creation with pricing
+- Email capture and credential generation
+
+PROFILE DETECTION ALGORITHM:
+- Cultural Seeker: authentic, local, traditional, culture, music, dance, real, community
+- Adventure Spirit: nature, hiking, beaches, outdoor, adventure, sports, active, explore
+- Spiritual Journey: spiritual, peaceful, meditation, zen, healing, wellness, mindful, soul
+- Luxury Traveler: luxury, comfort, premium, exclusive, high-end, VIP, first-class, upscale
+
+ADMIN PANEL FEATURES:
+1. Dashboard: Statistics, quick actions, activity feed
+2. AI Intelligence Management: Response templates, keyword management, A/B testing
+3. Destinations Management: CRUD with images, descriptions, selling points
+4. Package Builder: Visual package creation with real-time pricing
+5. API Management: Configure providers, monitor usage, track costs
+6. Booking Management: Real-time booking tracking and customer communication
+7. Analytics: Revenue tracking, conversion funnels, performance metrics
+
+REAL-TIME BOOKING FLOW:
+User: "I want to go to Rio in March for $2500"
+AI: "Let me check current flight prices..."
+[System calls Amadeus + Skyscanner APIs]
+AI: "Found flights for $750, hotels $140/night, cultural experiences $600"
+AI: "Total package: $2,450 - Should I reserve this?"
+User: "Yes!"
+[System initiates booking through APIs]
+AI: "Booked! Check your email for confirmation."
+
+MCP INTEGRATION SYSTEM:
+- Flight APIs: Amadeus, Skyscanner, Sabre
+- Hotel APIs: Booking.com, Expedia, Hotels.com  
+- Package Building: Automatic combination with markup rules
+- Fallback System: If one API fails, try alternatives
+- Cost Tracking: Monitor API usage and costs
+
+CONVERSATION EXAMPLE:
+Bot: "Hi! I'm your Brazil transformation consultant. What draws you to Brazil?"
+User: "I want authentic cultural experiences in Rio"
+Bot: "Perfect! Rio offers incredible cultural immersion. When are you thinking of traveling?"
+User: "March 15-22, budget around $2800"
+Bot: "Great! Let me check real availability for those dates..."
+[Real-time API calls]
+Bot: "Excellent! I found flights for $750, boutique hotel in Santa Teresa $140/night x 7 = $980, cultural experiences package $600, transfers $120. Total: $2,450 (saving you $350!). Should I reserve this?"
+
+TECHNICAL REQUIREMENTS:
+- Performance: < 2s page load, < 1s API response
+- Security: Bcrypt passwords, input validation, SQL injection protection
+- Scalability: Optimized queries, caching, rate limiting
+- Error Handling: Comprehensive error handling and logging
+- Mobile: Fully responsive design
+
+PACKAGE.JSON DEPENDENCIES:
+{
+  "name": "brasil-cultural-agency",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
+    "bcrypt": "^5.1.0",
+    "nodemailer": "^6.9.1",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2",
+    "express-session": "^1.17.3",
+    "axios": "^1.4.0",
+    "moment": "^2.29.4",
+    "uuid": "^9.0.0",
+    "joi": "^17.9.2"
+  }
+}
+
+INITIALIZATION DATA:
+- Create admin user: Lucas Nascimento / magaiver123 (bcrypt hashed)
+- Sample destinations: Rio de Janeiro, Salvador, Chapada Diamantina
+- Default AI knowledge templates for common travel questions
+- Sample API configurations for testing
+- Template travel packages with realistic pricing
+
+SUCCESS METRICS:
+- Business: 50+ leads/month, 35% conversion rate, $2,500+ AOV
+- Technical: 99.9% uptime, 98% API success rate, < 2s load times
+
+EXPECTED OUTPUT:
+1. Fully functional landing page with AI travel consultant
+2. Complete admin panel with all management features
+3. Real-time travel API integration and booking system
+4. Package builder with dynamic pricing
+5. Comprehensive analytics and business intelligence
+6. Mobile-responsive design for all interfaces
+7. Production-ready, scalable codebase
+
+CRITICAL SUCCESS FACTORS:
+- AI responses must feel natural and consultative
+- Real-time API integration must be seamless
+- Admin panel must be intuitive and powerful
+- All pricing must be accurate and profitable
+- System must handle errors gracefully
+- Code must be well-documented and maintainable
+
+Please create a complete, production-ready travel platform following this comprehensive specification. Focus on creating a system that can compete with major OTAs while maintaining authentic Brazil cultural focus.
+```
+
+---
+
+## 🎯 **VANTAGENS DO PRD + SCHEMA:**
+
+### 📋 **CONTEXTO COMPLETO:**
+- ✅ **Arquitetura visual** com diagramas Mermaid
+- ✅ **Database schema** com relacionamentos
+- ✅ **User journey** mapeado
+- ✅ **Fluxos de API** detalhados
+- ✅ **Especificações técnicas** precisas
+
+### 🎨 **DESIGN ESTRUTURADO:**
+- ✅ **Interface requirements** claros
+- ✅ **Performance targets** definidos
+- ✅ **Security specifications** incluídas
+- ✅ **Success metrics** estabelecidas
+
+### 🔧 **IMPLEMENTAÇÃO GUIADA:**
+- ✅ **Folder structure** detalhada
+- ✅ **Dependencies** especificadas
+- ✅ **Environment variables** mapeadas
+- ✅ **Initialization data** incluída
+
+---
