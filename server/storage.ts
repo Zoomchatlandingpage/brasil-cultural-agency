@@ -223,10 +223,16 @@ export class MemStorage implements IStorage {
   }
 
   async verifyAdminUser(username: string, password: string): Promise<AdminUser | null> {
+    console.log(`[AUTH] Login attempt - Username: "${username}"`);
+    console.log(`[AUTH] Available admin users:`, Array.from(this.adminUsers.values()).map(u => u.username));
+    
     const user = await this.getAdminUserByUsername(username);
+    console.log(`[AUTH] User found:`, user ? `Yes (ID: ${user.id})` : 'No');
+    
     if (!user) return null;
     
     const isValid = await bcrypt.compare(password, user.password);
+    console.log(`[AUTH] Password verification:`, isValid);
     return isValid ? user : null;
   }
 
@@ -804,4 +810,4 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();
