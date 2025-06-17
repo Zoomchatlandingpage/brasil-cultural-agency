@@ -3,15 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { 
   BarChart3, 
-  Bot, 
+  Brain,
+  Users,
   MapPin, 
   Package, 
   Calendar, 
+  TrendingUp,
+  Image,
   Settings, 
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Globe
+  Globe,
+  Flame
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
@@ -19,11 +23,15 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const navigationItems = [
-  { icon: BarChart3, label: "Dashboard", href: "/admin/dashboard", active: true },
-  { icon: Bot, label: "AI Intelligence", href: "/admin/ai", active: false },
+  { icon: Flame, label: "Enhanced Dashboard", href: "/admin/enhanced-dashboard", active: true },
+  { icon: BarChart3, label: "Classic Dashboard", href: "/admin/dashboard", active: false },
+  { icon: Brain, label: "AI Intelligence", href: "/admin/ai-intelligence", active: false },
+  { icon: Users, label: "Leads & CRM", href: "/admin/leads-crm", active: false },
   { icon: MapPin, label: "Destinations", href: "/admin/destinations", active: false },
   { icon: Package, label: "Packages", href: "/admin/packages", active: false },
   { icon: Calendar, label: "Bookings", href: "/admin/bookings", active: false },
+  { icon: TrendingUp, label: "Analytics", href: "/admin/analytics", active: false },
+  { icon: Image, label: "Content & Media", href: "/admin/content", active: false },
   { icon: Settings, label: "API Management", href: "/admin/apis", active: false },
 ];
 

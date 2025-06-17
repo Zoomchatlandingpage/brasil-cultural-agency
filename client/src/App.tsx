@@ -6,6 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Landing from "@/pages/landing";
 import AdminLogin from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
+import EnhancedDashboard from "@/pages/admin/enhanced-dashboard";
+import AIIntelligence from "@/pages/admin/ai-intelligence";
+import LeadsCRM from "@/pages/admin/leads-crm";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -14,6 +17,9 @@ function Router() {
       <Route path="/" component={Landing} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/admin/enhanced-dashboard" component={EnhancedDashboard} />
+      <Route path="/admin/ai-intelligence" component={AIIntelligence} />
+      <Route path="/admin/leads-crm" component={LeadsCRM} />
       <Route component={NotFound} />
     </Switch>
   );
