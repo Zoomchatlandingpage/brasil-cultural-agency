@@ -70,7 +70,7 @@ export default function AdminDashboard() {
           {/* Stats Cards */}
           <div className="grid md:grid-cols-4 gap-6">
             <Card className="bg-gradient-to-br from-amazon to-green-600 text-white">
-              <CardContent className="p-6">
+              <CardContent className="p-6 bg-[#3c445c]">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm opacity-80">Total Leads</p>
