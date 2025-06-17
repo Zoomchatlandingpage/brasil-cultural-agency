@@ -47,7 +47,6 @@ export default function Landing() {
           </div>
         </div>
       </nav>
-
       {/* Hero Section with AI Chat Interface */}
       <section className="relative bg-gradient-brazilian min-h-screen flex items-center">
         <div className="absolute inset-0 bg-black bg-opacity-40"></div>
@@ -69,7 +68,7 @@ export default function Landing() {
                 Discover Your
                 <span className="text-gold"> Authentic Brazil</span>
               </h1>
-              <p className="text-xl lg:text-2xl text-gray-100 leading-relaxed">
+              <p className="text-xl lg:text-2xl text-gray-100 leading-relaxed bg-[#00000075]">
                 AI-powered travel consultant creating personalized cultural journeys that transform how Americans experience Brazil.
               </p>
               <div className="flex flex-wrap gap-4 text-sm">
@@ -95,10 +94,8 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* Profile Types Section */}
       <ProfileTypes />
-
       {/* How It Works Section */}
       <section className="py-16 bg-sand">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -185,10 +182,8 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* Featured Destinations */}
       <Destinations />
-
       {/* CTA Section */}
       <section className="py-16 bg-gradient-brazilian">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -225,7 +220,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
