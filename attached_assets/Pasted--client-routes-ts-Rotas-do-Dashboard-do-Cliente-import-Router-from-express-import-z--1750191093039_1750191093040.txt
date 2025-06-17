@@ -1,0 +1,565 @@
+// client-routes.ts - Rotas do Dashboard do Cliente
+import { Router } from 'express';
+import { z } from 'zod';
+import { db } from '../storage';
+
+const router = Router();
+
+// Schemas de validação
+const CustomizePackageSchema = z.object({
+  flightOption: z.string().optional(),
+  hotelOption: z.string().optional(),
+  experiences: z.array(z.string()).optional(),
+  customServices: z.array(z.object({
+    id: z.string(),
+    duration: z.number(),
+    quantity: z.number()
+  })).optional()
+});
+
+const BookingSchema = z.object({
+  packageId: z.string(),
+  travelers: z.array(z.object({
+    name: z.string(),
+    email: z.string().email(),
+    phone: z.string(),
+    passport: z.string().optional()
+  })),
+  paymentMethod: z.object({
+    type: z.enum(['credit_card', 'paypal', 'bank_transfer']),
+    details: z.record(z.string())
+  })
+});
+
+// GET /api/client/dashboard - Visão geral do cliente
+router.get('/dashboard', async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Buscar pacote ativo do cliente
+    const activePackage = await db.query(`
+      SELECT 
+        p.*,
+        COALESCE(p.commission_earned, 0) as commission
+      FROM client_packages p 
+      WHERE p.user_id = ? AND p.status IN ('draft', 'confirmed', 'paid')
+      ORDER BY p.created_at DESC 
+      LIMIT 1
+    `, [userId]);
+
+    // Buscar reservas do cliente
+    const bookings = await db.query(`
+      SELECT 
+        b.*,
+        p.name as package_name
+      FROM bookings b
+      LEFT JOIN client_packages p ON b.package_id = p.id
+      WHERE b.user_id = ?
+      ORDER BY b.created_at DESC
+      LIMIT 10
+    `, [userId]);
+
+    // Calcular estatísticas
+    const stats = await db.query(`
+      SELECT 
+        COUNT(*) as total_bookings,
+        COALESCE(SUM(total_price), 0) as total_spent,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_trips
+      FROM client_packages 
+      WHERE user_id = ?
+    `, [userId]);
+
+    res.json({
+      user: req.user,
+      activePackage: activePackage[0] || null,
+      bookings,
+      stats: stats[0]
+    });
+
+  } catch (error) {
+    console.error('Dashboard error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/client/package/:id - Detalhes do pacote
+router.get('/package/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+
+    const package = await db.query(`
+      SELECT 
+        p.*,
+        u.name as user_name,
+        u.email as user_email
+      FROM client_packages p
+      JOIN users u ON p.user_id = u.id
+      WHERE p.id = ? AND p.user_id = ?
+    `, [id, userId]);
+
+    if (package.length === 0) {
+      return res.status(404).json({ error: 'Package not found' });
+    }
+
+    // Buscar componentes do pacote
+    const components = await db.query(`
+      SELECT * FROM package_components 
+      WHERE package_id = ?
+      ORDER BY type, created_at
+    `, [id]);
+
+    // Buscar serviços customizados
+    const customServices = await db.query(`
+      SELECT 
+        cs.*,
+        s.name,
+        s.description,
+        s.price_per_day,
+        s.price_fixed,
+        s.category
+      FROM package_custom_services cs
+      JOIN custom_services s ON cs.service_id = s.id
+      WHERE cs.package_id = ?
+    `, [id]);
+
+    res.json({
+      package: package[0],
+      components,
+      customServices
+    });
+
+  } catch (error) {
+    console.error('Package details error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /api/client/package/:id - Customizar pacote
+router.put('/package/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const customizations = CustomizePackageSchema.parse(req.body);
+
+    // Verificar se o pacote pertence ao usuário
+    const package = await db.query(`
+      SELECT * FROM client_packages 
+      WHERE id = ? AND user_id = ? AND status = 'draft'
+    `, [id, userId]);
+
+    if (package.length === 0) {
+      return res.status(404).json({ error: 'Package not found or cannot be modified' });
+    }
+
+    let totalPrice = 0;
+    let commission = 0;
+
+    // Recalcular preços baseado nas customizações
+    if (customizations.customServices) {
+      // Limpar serviços existentes
+      await db.query('DELETE FROM package_custom_services WHERE package_id = ?', [id]);
+      
+      // Adicionar novos serviços
+      for (const service of customizations.customServices) {
+        const serviceDetails = await db.query(`
+          SELECT * FROM custom_services WHERE id = ?
+        `, [service.id]);
+
+        if (serviceDetails.length > 0) {
+          const svc = serviceDetails[0];
+          const servicePrice = svc.price_per_day 
+            ? svc.price_per_day * service.duration 
+            : svc.price_fixed * service.quantity;
+
+          await db.query(`
+            INSERT INTO package_custom_services 
+            (package_id, service_id, duration, quantity, total_price)
+            VALUES (?, ?, ?, ?, ?)
+          `, [id, service.id, service.duration, service.quantity, servicePrice]);
+
+          totalPrice += servicePrice;
+          
+          // Se for seu serviço, 100% é comissão
+          if (svc.provider_id === 1) { // Assumindo que você é o provider_id = 1
+            commission += servicePrice;
+          } else {
+            commission += servicePrice * (svc.commission_rate || 0.20);
+          }
+        }
+      }
+    }
+
+    // Calcular comissões de voos e hotéis (valores simulados)
+    const flightPrice = 750; // Seria buscado da API real
+    const hotelPrice = 980;   // Seria buscado da API real
+    const experiencesPrice = 600;
+
+    commission += flightPrice * 0.04; // 4% comissão de voos
+    commission += hotelPrice * 0.10;  // 10% comissão de hotéis
+    commission += experiencesPrice * 0.20; // 20% comissão de experiências
+
+    totalPrice += flightPrice + hotelPrice + experiencesPrice;
+
+    // Atualizar pacote
+    await db.query(`
+      UPDATE client_packages 
+      SET 
+        total_price = ?,
+        commission_earned = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `, [totalPrice, commission, id]);
+
+    res.json({
+      success: true,
+      package: {
+        id,
+        totalPrice,
+        commission,
+        savings: Math.round(totalPrice * 0.15) // 15% de desconto simulado
+      }
+    });
+
+  } catch (error) {
+    console.error('Package customization error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/client/package/:id/book - Finalizar reserva
+router.post('/package/:id/book', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const bookingData = BookingSchema.parse(req.body);
+
+    // Verificar pacote
+    const package = await db.query(`
+      SELECT * FROM client_packages 
+      WHERE id = ? AND user_id = ? AND status = 'draft'
+    `, [id, userId]);
+
+    if (package.length === 0) {
+      return res.status(404).json({ error: 'Package not found or already booked' });
+    }
+
+    const pkg = package[0];
+
+    // Iniciar transação
+    await db.query('BEGIN TRANSACTION');
+
+    try {
+      // Criar booking principal
+      const bookingRef = `BCA${Date.now().toString().slice(-8)}`;
+      
+      await db.query(`
+        INSERT INTO bookings (
+          id, user_id, package_id, total_price, 
+          booking_reference, status, booking_data
+        ) VALUES (?, ?, ?, ?, ?, 'confirmed', ?)
+      `, [
+        bookingRef,
+        userId,
+        id,
+        pkg.total_price,
+        bookingRef,
+        JSON.stringify(bookingData)
+      ]);
+
+      // Processar reservas individuais
+      const reservations = [];
+
+      // 1. Reserva de voo (simulada)
+      const flightRef = await processFlightBooking(pkg, bookingData.travelers[0]);
+      reservations.push({
+        type: 'flight',
+        reference: flightRef,
+        status: 'confirmed',
+        price: 750
+      });
+
+      // 2. Reserva de hotel (simulada)
+      const hotelRef = await processHotelBooking(pkg, bookingData.travelers);
+      reservations.push({
+        type: 'hotel',
+        reference: hotelRef,
+        status: 'confirmed',
+        price: 980
+      });
+
+      // 3. Reservar serviços customizados
+      const customServices = await db.query(`
+        SELECT 
+          cs.*,
+          s.name,
+          s.category
+        FROM package_custom_services cs
+        JOIN custom_services s ON cs.service_id = s.id
+        WHERE cs.package_id = ?
+      `, [id]);
+
+      for (const service of customServices) {
+        reservations.push({
+          type: 'service',
+          reference: `SRV${Date.now()}`,
+          status: 'confirmed',
+          price: service.total_price,
+          name: service.name
+        });
+      }
+
+      // Salvar reservas individuais
+      for (const reservation of reservations) {
+        await db.query(`
+          INSERT INTO booking_items (
+            booking_id, type, name, reference, 
+            status, price, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        `, [
+          bookingRef,
+          reservation.type,
+          reservation.name || `${reservation.type} booking`,
+          reservation.reference,
+          reservation.status,
+          reservation.price
+        ]);
+      }
+
+      // Atualizar status do pacote
+      await db.query(`
+        UPDATE client_packages 
+        SET status = 'paid', updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `, [id]);
+
+      // Enviar email de confirmação
+      await sendBookingConfirmationEmail(userId, bookingRef, reservations);
+
+      await db.query('COMMIT');
+
+      res.json({
+        success: true,
+        bookingReference: bookingRef,
+        reservations,
+        message: 'Booking confirmed! Check your email for details.'
+      });
+
+    } catch (error) {
+      await db.query('ROLLBACK');
+      throw error;
+    }
+
+  } catch (error) {
+    console.error('Booking error:', error);
+    res.status(500).json({ error: 'Booking failed. Please try again.' });
+  }
+});
+
+// GET /api/client/bookings - Lista de reservas
+router.get('/bookings', async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    const bookings = await db.query(`
+      SELECT 
+        b.*,
+        p.name as package_name,
+        p.destination
+      FROM bookings b
+      LEFT JOIN client_packages p ON b.package_id = p.id
+      WHERE b.user_id = ?
+      ORDER BY b.created_at DESC
+    `, [userId]);
+
+    // Buscar itens de cada booking
+    for (const booking of bookings) {
+      const items = await db.query(`
+        SELECT * FROM booking_items 
+        WHERE booking_id = ?
+        ORDER BY created_at
+      `, [booking.id]);
+      booking.items = items;
+    }
+
+    res.json(bookings);
+
+  } catch (error) {
+    console.error('Bookings list error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/client/services/available - Serviços disponíveis
+router.get('/services/available', async (req, res) => {
+  try {
+    const services = await db.query(`
+      SELECT 
+        s.*,
+        u.name as provider_name
+      FROM custom_services s
+      LEFT JOIN users u ON s.provider_id = u.id
+      WHERE s.active = true
+      ORDER BY s.category, s.name
+    `);
+
+    // Agrupar por categoria
+    const servicesByCategory = services.reduce((acc, service) => {
+      if (!acc[service.category]) {
+        acc[service.category] = [];
+      }
+      acc[service.category].push(service);
+      return acc;
+    }, {});
+
+    res.json(servicesByCategory);
+
+  } catch (error) {
+    console.error('Available services error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Funções auxiliares para processamento de reservas
+async function processFlightBooking(package, traveler) {
+  // Aqui seria a integração real com APIs de voo (Amadeus, etc.)
+  // Por enquanto, simula uma reserva
+  const reference = `FL${Date.now().toString().slice(-6)}`;
+  
+  // Simular delay de API
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  return reference;
+}
+
+async function processHotelBooking(package, travelers) {
+  // Aqui seria a integração real com APIs de hotel (Booking.com, etc.)
+  const reference = `HT${Date.now().toString().slice(-6)}`;
+  
+  // Simular delay de API
+  await new Promise(resolve => setTimeout(resolve, 300));
+  
+  return reference;
+}
+
+async function sendBookingConfirmationEmail(userId, bookingRef, reservations) {
+  // Aqui seria a integração com serviço de email
+  console.log(`Sending confirmation email for booking ${bookingRef} to user ${userId}`);
+  
+  // Email template seria algo como:
+  const emailContent = {
+    to: 'user@email.com',
+    subject: 'Your Brazil Trip is Confirmed! 🇧🇷',
+    html: `
+      <h1>Booking Confirmed!</h1>
+      <p>Reference: ${bookingRef}</p>
+      <h2>Your Reservations:</h2>
+      <ul>
+        ${reservations.map(r => `<li>${r.type}: ${r.reference} - $${r.price}</li>`).join('')}
+      </ul>
+      <p>Your personal guide Lucas will contact you soon!</p>
+    `
+  };
+  
+  // Simular envio
+  return true;
+}
+
+// Middleware para verificar autenticação
+router.use((req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  next();
+});
+
+export default router;
+
+// Schema SQL para as novas tabelas
+/*
+-- Tabela de pacotes do cliente
+CREATE TABLE client_packages (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  destination VARCHAR(255),
+  duration VARCHAR(50),
+  total_price DECIMAL(10,2),
+  commission_earned DECIMAL(10,2),
+  status VARCHAR(50) DEFAULT 'draft',
+  start_date DATE,
+  end_date DATE,
+  package_data TEXT, -- JSON com detalhes
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Tabela de serviços customizados
+CREATE TABLE custom_services (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  category VARCHAR(100), -- 'guide', 'translator', 'transport', 'experience'
+  price_per_day DECIMAL(10,2),
+  price_fixed DECIMAL(10,2),
+  commission_rate DECIMAL(5,2) DEFAULT 0.20,
+  provider_id INTEGER, -- ID do usuário que oferece o serviço
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (provider_id) REFERENCES users(id)
+);
+
+-- Tabela de serviços em pacotes
+CREATE TABLE package_custom_services (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  package_id VARCHAR(50),
+  service_id INTEGER,
+  duration INTEGER DEFAULT 1, -- dias
+  quantity INTEGER DEFAULT 1,
+  total_price DECIMAL(10,2),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (package_id) REFERENCES client_packages(id),
+  FOREIGN KEY (service_id) REFERENCES custom_services(id)
+);
+
+-- Tabela de reservas finalizadas
+CREATE TABLE bookings (
+  id VARCHAR(50) PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  package_id VARCHAR(50),
+  total_price DECIMAL(10,2),
+  booking_reference VARCHAR(100),
+  status VARCHAR(50) DEFAULT 'pending',
+  booking_data TEXT, -- JSON com dados da reserva
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (package_id) REFERENCES client_packages(id)
+);
+
+-- Tabela de itens de reserva
+CREATE TABLE booking_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_id VARCHAR(50),
+  type VARCHAR(50), -- 'flight', 'hotel', 'experience', 'service'
+  name VARCHAR(255),
+  reference VARCHAR(100),
+  status VARCHAR(50) DEFAULT 'pending',
+  price DECIMAL(10,2),
+  booking_date DATE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (booking_id) REFERENCES bookings(id)
+);
+
+-- Inserir alguns serviços de exemplo
+INSERT INTO custom_services (name, description, category, price_per_day, provider_id) VALUES
+('Personal Guide', 'Local expertise and cultural insights', 'guide', 30.00, 1),
+('Portuguese Translator', 'Real-time translation support', 'translator', 20.00, 1),
+('Airport Transfer', 'Comfortable transportation', 'transport', NULL, 1),
+('24/7 WhatsApp Support', 'Always available assistance', 'support', 10.00, 1);
+
+UPDATE custom_services SET price_fixed = 25.00 WHERE name = 'Airport Transfer';
+*/

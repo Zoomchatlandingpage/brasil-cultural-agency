@@ -1,0 +1,308 @@
+# 🎯 DASHBOARD DO CLIENTE - BRASIL CULTURAL AGENCY
+
+## 📋 **JORNADA COMPLETA DO CLIENTE**
+
+### **FASE 1: DESCOBERTA (Landing Page)**
+```
+1. Cliente chega na landing page
+2. Conversa com IA consultora
+3. IA detecta perfil e cria pacote personalizado
+4. Cliente se interessa: "Quero reservar!"
+5. IA captura email e cria conta automática
+6. Email enviado com credenciais do dashboard
+```
+
+### **FASE 2: PERSONALIZAÇÃO (Client Dashboard)**
+```
+1. Cliente faz login no dashboard
+2. Vê o pacote sugerido pela IA
+3. Pode customizar cada componente:
+   - Trocar hotel
+   - Adicionar/remover experiências
+   - Escolher seus serviços (guia, tradutor)
+   - Ajustar datas
+4. Sistema recalcula preços em tempo real
+5. Cliente vê total final com suas comissões incluídas
+```
+
+### **FASE 3: RESERVA (Booking System)**
+```
+1. Cliente aprova pacote final
+2. Preenche dados de viajantes
+3. Escolhe forma de pagamento
+4. Sistema processa reservas automáticas
+5. Confirmações enviadas por email
+6. Dashboard mostra status de cada reserva
+```
+
+---
+
+## 🎨 **INTERFACE DO DASHBOARD - WIREFRAME**
+
+### **TELA 1: VISÃO GERAL**
+```
+┌─────────────────────────────────────────────────────────┐
+│ 🇧🇷 Brasil Cultural Agency                    [Profile] │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ 👋 Welcome back, John!                                  │
+│ Your Brazilian Journey                                  │
+│                                                         │
+│ ┌─────────────────┐  ┌─────────────────┐               │
+│ │   📍 MY TRIP    │  │  💬 AI ASSISTANT │               │
+│ │                 │  │                  │               │
+│ │ Rio Cultural    │  │ "Ready to add    │               │
+│ │ 7 days • $2,450 │  │  more magic to   │               │
+│ │                 │  │  your trip?"     │               │
+│ │ [Customize]     │  │                  │               │
+│ └─────────────────┘  └─────────────────┘               │
+│                                                         │
+│ ┌─────────────────┐  ┌─────────────────┐               │
+│ │  ✈️ BOOKINGS    │  │  🏆 YOUR GUIDE   │               │
+│ │                 │  │                  │               │
+│ │ Flight: Pending │  │ Lucas (You)      │               │
+│ │ Hotel: Confirmed│  │ Guide • Translator│               │
+│ │ Experiences: 3  │  │ Available 24/7   │               │
+│ │                 │  │                  │               │
+│ │ [View Details]  │  │ [Message Me]     │               │
+│ └─────────────────┘  └─────────────────┘               │
+└─────────────────────────────────────────────────────────┘
+```
+
+### **TELA 2: CUSTOMIZAÇÃO DO PACOTE**
+```
+┌─────────────────────────────────────────────────────────┐
+│ ← Back to Overview    Rio Cultural Experience          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ ✈️ FLIGHT                            $750    [Change]  │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ Washington DC → Rio de Janeiro                      │ │
+│ │ TAM Airlines • Direct • 8h 30m                      │ │
+│ │ Departure: Aug 15, 2025 • Return: Aug 22, 2025     │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ 🏨 ACCOMMODATION                     $980    [Change]  │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ Boutique Hotel Ipanema                              │ │
+│ │ 4⭐ • Ipanema Beach • 7 nights                      │ │
+│ │ Ocean view • Breakfast included                     │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ 🎭 CULTURAL EXPERIENCES              $600    [Custom]  │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ ✓ Samba class with live music       $120           │ │
+│ │ ✓ Favela cultural tour              $180           │ │
+│ │ ✓ Traditional feijoada experience   $150           │ │
+│ │ ✓ Christ the Redeemer with guide    $150           │ │
+│ │ + Add more experiences...                           │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ 👨‍🦮 YOUR PERSONAL SERVICES            $300    [Custom]  │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ ✓ Personal guide (Lucas) - 7 days   $200           │ │
+│ │ ✓ Portuguese translator services     $100           │ │
+│ │ ✓ WhatsApp support 24/7             Free           │ │
+│ │ ✓ Airport pickup & transfers        Included       │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ ──────────────────────────────────────────────────────── │
+│ TOTAL: $2,630    You save $420!    [BOOK THIS TRIP]   │
+└─────────────────────────────────────────────────────────┘
+```
+
+### **TELA 3: BOOKING & PAYMENT**
+```
+┌─────────────────────────────────────────────────────────┐
+│ ← Back to Package     Complete Your Booking            │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ 👥 TRAVELER DETAILS                                     │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ Primary Traveler: John Smith ✓                      │ │
+│ │ Email: john@email.com                               │ │
+│ │ Phone: +1 (555) 123-4567                           │ │
+│ │                                                     │ │
+│ │ Passport: Required for international travel         │ │
+│ │ [Upload Passport Copy]                              │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ 💳 PAYMENT METHOD                                       │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ ◉ Credit Card                                       │ │
+│ │ ○ PayPal                                            │ │
+│ │ ○ Bank Transfer                                     │ │
+│ │                                                     │ │
+│ │ Card Number: [____-____-____-____]                  │ │
+│ │ Expiry: [MM/YY]  CVV: [___]                        │ │
+│ │ Name on Card: [________________]                    │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ 📋 BOOKING SUMMARY                                      │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ Rio Cultural Experience • 7 days                    │ │
+│ │ 1 traveler • Aug 15-22, 2025                       │ │
+│ │                                                     │ │
+│ │ Subtotal:     $2,630                               │ │
+│ │ Booking fee:   $50                                 │ │
+│ │ Insurance:     $80 (recommended)                   │ │
+│ │ ────────────────────                               │ │
+│ │ Total:       $2,760                               │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ [CONFIRM & PAY $2,760]                                  │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## ⚙️ **BACKEND: SISTEMA DE COMISSÕES**
+
+### **ESTRUTURA DE DADOS**
+```typescript
+// Tabela de Serviços Personalizados
+CREATE TABLE custom_services (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255),
+  description TEXT,
+  price_per_day DECIMAL(10,2),
+  price_fixed DECIMAL(10,2),
+  category VARCHAR(100), -- 'guide', 'translator', 'transport'
+  provider_id INTEGER, -- Seu ID como prestador
+  commission_rate DECIMAL(5,2) -- 20% = 0.20
+);
+
+// Tabela de Pacotes do Cliente
+CREATE TABLE client_packages (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER,
+  status VARCHAR(50), -- 'draft', 'confirmed', 'paid'
+  total_price DECIMAL(10,2),
+  commission_earned DECIMAL(10,2),
+  flight_booking_ref VARCHAR(255),
+  hotel_booking_ref VARCHAR(255),
+  custom_services JSONB, -- Array de serviços escolhidos
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### **CÁLCULO AUTOMÁTICO DE COMISSÕES**
+```typescript
+// Exemplo de cálculo
+const calculateCommissions = (package) => {
+  let totalCommission = 0;
+  
+  // Comissão de voos (3-5%)
+  totalCommission += package.flightPrice * 0.04;
+  
+  // Comissão de hotéis (8-12%)
+  totalCommission += package.hotelPrice * 0.10;
+  
+  // Seus serviços (100% de lucro)
+  totalCommission += package.customServices
+    .filter(s => s.provider === 'you')
+    .reduce((sum, s) => sum + s.price, 0);
+  
+  // Comissão de experiências locais (15-25%)
+  totalCommission += package.experiences
+    .reduce((sum, e) => sum + (e.price * 0.20), 0);
+    
+  return totalCommission;
+};
+```
+
+---
+
+## 🚀 **IMPLEMENTAÇÃO TÉCNICA**
+
+### **NOVAS ROTAS NECESSÁRIAS**
+```typescript
+// Rotas do Dashboard do Cliente
+GET    /api/client/dashboard          // Visão geral
+GET    /api/client/package/:id        // Detalhes do pacote
+PUT    /api/client/package/:id        // Customizar pacote
+POST   /api/client/package/:id/book   // Finalizar reserva
+GET    /api/client/bookings           // Lista de reservas
+GET    /api/client/services/available // Seus serviços disponíveis
+
+// Rotas de Serviços Personalizados
+GET    /api/admin/services            // Gerenciar seus serviços
+POST   /api/admin/services            // Criar novo serviço
+PUT    /api/admin/services/:id        // Editar serviço
+```
+
+### **COMPONENTE REACT PRINCIPAL**
+```jsx
+// ClientDashboard.tsx
+export default function ClientDashboard() {
+  const [activePackage, setActivePackage] = useState(null);
+  const [customServices, setCustomServices] = useState([]);
+  
+  return (
+    <div className="dashboard-layout">
+      <Sidebar />
+      <main className="dashboard-content">
+        <Routes>
+          <Route path="/" element={<Overview />} />
+          <Route path="/package" element={<PackageCustomizer />} />
+          <Route path="/booking" element={<BookingFlow />} />
+          <Route path="/bookings" element={<BookingHistory />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+```
+
+---
+
+## 💰 **MODELO DE NEGÓCIO - SUAS RECEITAS**
+
+### **FONTE 1: COMISSÕES DE RESERVAS**
+- ✈️ Voos: 3-5% ($30-50 por reserva)
+- 🏨 Hotéis: 8-12% ($80-120 por reserva)
+- 🎭 Experiências: 15-25% ($30-50 por atividade)
+
+### **FONTE 2: SEUS SERVIÇOS DIRETOS**
+- 👨‍🦮 Guia pessoal: $30-50/dia
+- 🗣️ Tradutor: $20-30/dia  
+- 🚗 Transfers: $15-25/trajeto
+- 📱 Suporte 24/7: $10/dia
+
+### **FONTE 3: PACOTES PREMIUM**
+- 🏆 Consultoria personalizada: $200-500
+- 📋 Planejamento customizado: $100-300
+- 🎯 Experiências exclusivas: $100-1000
+
+### **RECEITA EXEMPLO POR CLIENTE:**
+```
+Pacote Rio 7 dias ($2,630):
+- Comissão voo: $30
+- Comissão hotel: $98
+- Comissão experiências: $120
+- Seus serviços: $300
+- Total sua receita: $548 (21% do pacote)
+```
+
+---
+
+## 🎯 **PRÓXIMOS PASSOS IMEDIATOS**
+
+### **HOJE (4 horas):**
+1. Criar páginas do client dashboard
+2. Implementar sistema de customização
+3. Adicionar cálculo de comissões
+
+### **AMANHÃ (3 horas):**
+4. Sistema de booking real
+5. Integração com pagamentos
+6. Templates de email de confirmação
+
+### **SEMANA 1:**
+7. Painel para gerenciar seus serviços
+8. Sistema de avaliações dos clientes
+9. Relatórios de receita
+
+---
+
+**QUER QUE EU CRIE O CÓDIGO COMPLETO DO DASHBOARD DO CLIENTE AGORA?** 🚀

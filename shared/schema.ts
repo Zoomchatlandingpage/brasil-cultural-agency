@@ -17,9 +17,13 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  phone: text("phone"),
   profileType: text("profile_type"),
   quizResponses: text("quiz_responses"),
   conversationLog: text("conversation_log"),
+  userType: text("user_type").default("client"), // client, admin
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -240,6 +244,136 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
   }),
 }));
 
+// Client dashboard schema extensions
+export const clientPackages = pgTable("client_packages", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(),
+  destination: text("destination").notNull(),
+  duration: text("duration").notNull(),
+  totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
+  flightPrice: decimal("flight_price", { precision: 10, scale: 2 }).default("0"),
+  hotelPrice: decimal("hotel_price", { precision: 10, scale: 2 }).default("0"),
+  experiencesPrice: decimal("experiences_price", { precision: 10, scale: 2 }).default("0"),
+  customServicesPrice: decimal("custom_services_price", { precision: 10, scale: 2 }).default("0"),
+  commission: decimal("commission", { precision: 10, scale: 2 }).default("0"),
+  status: text("status").default("draft"), // draft, confirmed, paid, completed
+  startDate: text("start_date"),
+  endDate: text("end_date"),
+  packageData: text("package_data"), // JSON data from AI
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const customServices = pgTable("custom_services", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // guide, translator, transport, experience
+  pricePerDay: decimal("price_per_day", { precision: 10, scale: 2 }),
+  priceFixed: decimal("price_fixed", { precision: 10, scale: 2 }),
+  providerId: integer("provider_id").references(() => users.id),
+  commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }).default("0.20"),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const clientPackageComponents = pgTable("client_package_components", {
+  id: serial("id").primaryKey(),
+  packageId: integer("package_id").references(() => clientPackages.id).notNull(),
+  type: text("type").notNull(), // flight, hotel, experience, service
+  name: text("name").notNull(),
+  description: text("description"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  quantity: integer("quantity").default(1),
+  duration: integer("duration").default(1), // days
+  reference: text("reference"), // booking reference
+  status: text("status").default("pending"), // pending, confirmed, cancelled
+  metadata: text("metadata"), // JSON for additional data
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const clientBookings = pgTable("client_bookings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  packageId: integer("package_id").references(() => clientPackages.id).notNull(),
+  bookingReference: text("booking_reference").notNull().unique(),
+  totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").default("confirmed"), // confirmed, cancelled, completed
+  travelerData: text("traveler_data"), // JSON with traveler details
+  paymentData: text("payment_data"), // JSON with payment info
+  confirmationSent: boolean("confirmation_sent").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const clientSessions = pgTable("client_sessions", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Client dashboard schema types
+export const insertClientPackageSchema = createInsertSchema(clientPackages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCustomServiceSchema = createInsertSchema(customServices).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPackageComponentSchema = createInsertSchema(packageComponents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertClientBookingSchema = createInsertSchema(clientBookings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type ClientPackage = typeof clientPackages.$inferSelect;
+export type InsertClientPackage = z.infer<typeof insertClientPackageSchema>;
+export type CustomService = typeof customServices.$inferSelect;
+export type InsertCustomService = z.infer<typeof insertCustomServiceSchema>;
+export type PackageComponent = typeof packageComponents.$inferSelect;
+export type InsertPackageComponent = z.infer<typeof insertPackageComponentSchema>;
+export type ClientBooking = typeof clientBookings.$inferSelect;
+export type InsertClientBooking = z.infer<typeof insertClientBookingSchema>;
+
+// Client dashboard relations
+export const clientPackagesRelations = relations(clientPackages, ({ one, many }) => ({
+  user: one(users, {
+    fields: [clientPackages.userId],
+    references: [users.id],
+  }),
+  components: many(packageComponents),
+  bookings: many(clientBookings),
+}));
+
+export const packageComponentsRelations = relations(packageComponents, ({ one }) => ({
+  package: one(clientPackages, {
+    fields: [packageComponents.packageId],
+    references: [clientPackages.id],
+  }),
+}));
+
+export const clientBookingsRelations = relations(clientBookings, ({ one }) => ({
+  user: one(users, {
+    fields: [clientBookings.userId],
+    references: [users.id],
+  }),
+  package: one(clientPackages, {
+    fields: [clientBookings.packageId],
+    references: [clientPackages.id],
+  }),
+}));
+
 // Enhanced AI Intelligence Schema
 export const aiKnowledgeBase = pgTable("ai_knowledge_base", {
   id: serial("id").primaryKey(),
@@ -332,22 +466,6 @@ export const analyticsEvents = pgTable("analytics_events", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Enhanced Package Components Schema
-export const packageComponents = pgTable("package_components", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  type: text("type").notNull(), // flight, hotel, experience, transfer, meal
-  description: text("description"),
-  basePrice: decimal("base_price", { precision: 10, scale: 2 }),
-  markup: decimal("markup", { precision: 5, scale: 2 }).default("0.0"),
-  supplier: text("supplier"),
-  duration: integer("duration"), // in hours/days
-  capacity: integer("capacity"),
-  tags: text("tags"), // comma-separated
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
 // Type exports for new schemas
 export type AIKnowledgeBase = typeof aiKnowledgeBase.$inferSelect;
 export type InsertAIKnowledgeBase = typeof aiKnowledgeBase.$inferInsert;
@@ -363,5 +481,3 @@ export type MediaFile = typeof mediaLibrary.$inferSelect;
 export type InsertMediaFile = typeof mediaLibrary.$inferInsert;
 export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
 export type InsertAnalyticsEvent = typeof analyticsEvents.$inferInsert;
-export type PackageComponent = typeof packageComponents.$inferSelect;
-export type InsertPackageComponent = typeof packageComponents.$inferInsert;

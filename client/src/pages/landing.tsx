@@ -199,7 +199,7 @@ export default function Landing() {
                 <span className="mr-2">💬</span>
                 Start AI Conversation
               </Button>
-              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-amazon font-bold text-lg px-8 py-4">
+              <Button size="lg" variant="outline" className="border-2 border-white hover:bg-white hover:text-amazon font-bold text-lg px-8 py-4 text-[#04095e]">
                 Learn More
               </Button>
             </div>

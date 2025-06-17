@@ -1,0 +1,535 @@
+// ClientDashboard.tsx - Componente Principal
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  User, 
+  MapPin, 
+  Calendar, 
+  DollarSign, 
+  Plane, 
+  Hotel, 
+  Coffee, 
+  MessageCircle,
+  Settings,
+  Star,
+  Clock,
+  CheckCircle,
+  AlertCircle
+} from 'lucide-react';
+
+interface Package {
+  id: string;
+  name: string;
+  destination: string;
+  duration: string;
+  totalPrice: number;
+  status: 'draft' | 'confirmed' | 'paid' | 'completed';
+  flightPrice: number;
+  hotelPrice: number;
+  experiencesPrice: number;
+  customServicesPrice: number;
+  commission: number;
+  startDate: string;
+  endDate: string;
+}
+
+interface Booking {
+  id: string;
+  type: 'flight' | 'hotel' | 'experience' | 'service';
+  name: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  date: string;
+  price: number;
+  reference?: string;
+}
+
+export default function ClientDashboard() {
+  const [activePackage, setActivePackage] = useState<Package | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [user, setUser] = useState({ name: 'John Smith', email: 'john@email.com' });
+
+  useEffect(() => {
+    // Simular carregamento de dados
+    setActivePackage({
+      id: '1',
+      name: 'Rio Cultural Experience',
+      destination: 'Rio de Janeiro',
+      duration: '7 days',
+      totalPrice: 2630,
+      status: 'draft',
+      flightPrice: 750,
+      hotelPrice: 980,
+      experiencesPrice: 600,
+      customServicesPrice: 300,
+      commission: 548,
+      startDate: '2025-08-15',
+      endDate: '2025-08-22'
+    });
+
+    setBookings([
+      {
+        id: '1',
+        type: 'flight',
+        name: 'Washington DC → Rio de Janeiro',
+        status: 'pending',
+        date: '2025-08-15',
+        price: 750
+      },
+      {
+        id: '2',
+        type: 'hotel',
+        name: 'Boutique Hotel Ipanema',
+        status: 'confirmed',
+        date: '2025-08-15',
+        price: 980
+      },
+      {
+        id: '3',
+        type: 'experience',
+        name: 'Samba Class + Live Music',
+        status: 'confirmed',
+        date: '2025-08-16',
+        price: 120
+      }
+    ]);
+  }, []);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'confirmed': return <CheckCircle className="w-4 h-4" />;
+      case 'pending': return <Clock className="w-4 h-4" />;
+      case 'cancelled': return <AlertCircle className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-amazon-ocean rounded-full flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-bold text-xl">Brasil Cultural Agency</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" size="sm">
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Support
+              </Button>
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-medium">{user.name}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            👋 Welcome back, {user.name.split(' ')[0]}!
+          </h1>
+          <p className="text-gray-600">Your Brazilian Journey awaits</p>
+        </div>
+
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="package">My Trip</TabsTrigger>
+            <TabsTrigger value="bookings">Bookings</TabsTrigger>
+            <TabsTrigger value="services">Services</TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* My Trip Card */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <MapPin className="w-5 h-5" />
+                    <span>My Trip</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {activePackage ? (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-lg">{activePackage.name}</h3>
+                          <p className="text-gray-600">{activePackage.duration} • ${activePackage.totalPrice.toLocaleString()}</p>
+                          <p className="text-sm text-gray-500">{activePackage.startDate} to {activePackage.endDate}</p>
+                        </div>
+                        <Badge className={getStatusColor(activePackage.status)}>
+                          {activePackage.status}
+                        </Badge>
+                      </div>
+                      <Button className="w-full">Customize Trip</Button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500 mb-4">No active trip</p>
+                      <Button>Start Planning</Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* AI Assistant Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <MessageCircle className="w-5 h-5" />
+                    <span>AI Assistant</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        "Ready to add more magic to your Rio trip?"
+                      </p>
+                    </div>
+                    <Button variant="outline" className="w-full">
+                      Chat Now
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Your Guide Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Star className="w-5 h-5" />
+                    <span>Your Guide</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gradient-amazon-ocean rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold">L</span>
+                      </div>
+                      <div>
+                        <p className="font-semibold">Lucas</p>
+                        <p className="text-sm text-gray-600">Guide • Translator</p>
+                        <p className="text-xs text-green-600">Available 24/7</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full">
+                      Message Lucas
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Bookings Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Calendar className="w-5 h-5" />
+                  <span>Recent Bookings</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {bookings.slice(0, 3).map((booking) => (
+                    <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-full ${getStatusColor(booking.status)}`}>
+                          {getStatusIcon(booking.status)}
+                        </div>
+                        <div>
+                          <p className="font-medium">{booking.name}</p>
+                          <p className="text-sm text-gray-600">{booking.date}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">${booking.price}</p>
+                        <Badge variant="outline" className={getStatusColor(booking.status)}>
+                          {booking.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Package Customization Tab */}
+          <TabsContent value="package" className="space-y-6">
+            {activePackage && (
+              <PackageCustomizer package={activePackage} onUpdate={setActivePackage} />
+            )}
+          </TabsContent>
+
+          {/* Bookings Tab */}
+          <TabsContent value="bookings" className="space-y-6">
+            <BookingsList bookings={bookings} />
+          </TabsContent>
+
+          {/* Services Tab */}
+          <TabsContent value="services" className="space-y-6">
+            <ServicesManager />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
+
+// Package Customizer Component
+function PackageCustomizer({ package: pkg, onUpdate }: { package: Package, onUpdate: (pkg: Package) => void }) {
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">{pkg.name}</h2>
+        <Badge className={getStatusColor(pkg.status)}>{pkg.status}</Badge>
+      </div>
+
+      {/* Flight Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Plane className="w-5 h-5" />
+              <span>Flight</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-bold">${pkg.flightPrice}</span>
+              <Button variant="outline" size="sm">Change</Button>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="font-medium">Washington DC → Rio de Janeiro</p>
+            <p className="text-sm text-gray-600">TAM Airlines • Direct • 8h 30m</p>
+            <p className="text-sm text-gray-600">Departure: {pkg.startDate} • Return: {pkg.endDate}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Hotel Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Hotel className="w-5 h-5" />
+              <span>Accommodation</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-bold">${pkg.hotelPrice}</span>
+              <Button variant="outline" size="sm">Change</Button>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="font-medium">Boutique Hotel Ipanema</p>
+            <p className="text-sm text-gray-600">4⭐ • Ipanema Beach • 7 nights</p>
+            <p className="text-sm text-gray-600">Ocean view • Breakfast included</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Cultural Experiences */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Coffee className="w-5 h-5" />
+              <span>Cultural Experiences</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-bold">${pkg.experiencesPrice}</span>
+              <Button variant="outline" size="sm">Customize</Button>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <span>✓ Samba class with live music</span>
+              <span className="font-medium">$120</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <span>✓ Favela cultural tour</span>
+              <span className="font-medium">$180</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <span>✓ Traditional feijoada experience</span>
+              <span className="font-medium">$150</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <span>✓ Christ the Redeemer with guide</span>
+              <span className="font-medium">$150</span>
+            </div>
+            <Button variant="ghost" className="w-full">+ Add more experiences...</Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Personal Services */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <User className="w-5 h-5" />
+              <span>Your Personal Services</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-bold">${pkg.customServicesPrice}</span>
+              <Button variant="outline" size="sm">Customize</Button>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-3 bg-green-50 rounded">
+              <span>✓ Personal guide (Lucas) - 7 days</span>
+              <span className="font-medium">$200</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-green-50 rounded">
+              <span>✓ Portuguese translator services</span>
+              <span className="font-medium">$100</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-green-50 rounded">
+              <span>✓ WhatsApp support 24/7</span>
+              <span className="text-green-600 font-medium">Free</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-green-50 rounded">
+              <span>✓ Airport pickup & transfers</span>
+              <span className="text-green-600 font-medium">Included</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Total & Book */}
+      <Card className="border-2 border-amazon">
+        <CardContent className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-lg font-semibold">Total Package:</span>
+            <span className="text-2xl font-bold text-amazon">${pkg.totalPrice.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between items-center mb-6">
+            <span className="text-sm text-green-600">You save $420!</span>
+            <span className="text-sm text-gray-600">Your commission: ${pkg.commission}</span>
+          </div>
+          <Button className="w-full bg-amazon hover:bg-green-700 text-lg py-3">
+            BOOK THIS TRIP
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Bookings List Component
+function BookingsList({ bookings }: { bookings: Booking[] }) {
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold">My Bookings</h2>
+      {bookings.map((booking) => (
+        <Card key={booking.id}>
+          <CardContent className="p-6">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-4">
+                <div className={`p-3 rounded-full ${getStatusColor(booking.status)}`}>
+                  {booking.type === 'flight' && <Plane className="w-5 h-5" />}
+                  {booking.type === 'hotel' && <Hotel className="w-5 h-5" />}
+                  {booking.type === 'experience' && <Coffee className="w-5 h-5" />}
+                  {booking.type === 'service' && <User className="w-5 h-5" />}
+                </div>
+                <div>
+                  <h3 className="font-semibold">{booking.name}</h3>
+                  <p className="text-gray-600">{booking.date}</p>
+                  {booking.reference && (
+                    <p className="text-sm text-gray-500">Ref: {booking.reference}</p>
+                  )}
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-lg">${booking.price}</p>
+                <Badge className={getStatusColor(booking.status)}>
+                  {getStatusIcon(booking.status)}
+                  <span className="ml-1">{booking.status}</span>
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// Services Manager Component
+function ServicesManager() {
+  const services = [
+    { name: 'Personal Guide', price: '$30/day', description: 'Local expertise and cultural insights' },
+    { name: 'Portuguese Translator', price: '$20/day', description: 'Real-time translation support' },
+    { name: 'Airport Transfers', price: '$25/trip', description: 'Comfortable transportation' },
+    { name: '24/7 WhatsApp Support', price: '$10/day', description: 'Always available assistance' }
+  ];
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Available Services</h2>
+      <div className="grid md:grid-cols-2 gap-6">
+        {services.map((service, index) => (
+          <Card key={index}>
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                <span>{service.name}</span>
+                <span className="text-amazon">{service.price}</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">{service.description}</p>
+              <Button variant="outline" className="w-full">Add to Package</Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Helper function (repetindo aqui para completude)
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'confirmed': return 'bg-green-100 text-green-800';
+    case 'pending': return 'bg-yellow-100 text-yellow-800';
+    case 'cancelled': return 'bg-red-100 text-red-800';
+    case 'paid': return 'bg-blue-100 text-blue-800';
+    case 'completed': return 'bg-purple-100 text-purple-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+}
