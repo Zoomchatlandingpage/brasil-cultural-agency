@@ -279,7 +279,7 @@ export class MemStorage implements IStorage {
 
   async createLead(lead: InsertLead): Promise<Lead> {
     const id = this.currentId++;
-    const newLead: Lead = {
+    const newLead = {
       ...lead,
       id,
       createdAt: new Date(),
@@ -291,7 +291,7 @@ export class MemStorage implements IStorage {
       travelDates: lead.travelDates || null,
       bookingStatus: lead.bookingStatus || null,
       status: lead.status || null,
-    };
+    } as Lead;
     this.leads.set(id, newLead);
     return newLead;
   }
