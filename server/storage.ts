@@ -242,12 +242,15 @@ export class MemStorage implements IStorage {
   async createUser(user: InsertUser): Promise<User> {
     const hashedPassword = await bcrypt.hash(user.password, 10);
     const id = this.currentId++;
-    const newUser: User = {
+    const newUser = {
       ...user,
       id,
       password: hashedPassword,
       createdAt: new Date(),
-    };
+      profileType: user.profileType || null,
+      quizResponses: user.quizResponses || null,
+      conversationLog: user.conversationLog || null,
+    } as User;
     this.users.set(id, newUser);
     return newUser;
   }
@@ -280,6 +283,14 @@ export class MemStorage implements IStorage {
       ...lead,
       id,
       createdAt: new Date(),
+      userId: lead.userId || null,
+      profileScore: lead.profileScore || null,
+      interestLevel: lead.interestLevel || null,
+      recommendedDestinations: lead.recommendedDestinations || null,
+      estimatedBudget: lead.estimatedBudget || null,
+      travelDates: lead.travelDates || null,
+      bookingStatus: lead.bookingStatus || null,
+      status: lead.status || null,
     };
     this.leads.set(id, newLead);
     return newLead;

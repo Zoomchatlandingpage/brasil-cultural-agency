@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { authMiddleware, createSession, destroySession } from "./services/auth";
@@ -7,6 +7,10 @@ import { travelApis } from "./services/travel-apis";
 import { emailService } from "./services/email";
 import { insertUserSchema, insertLeadSchema, insertDestinationSchema, insertTravelPackageSchema, insertBookingSchema } from "@shared/schema";
 import { z } from "zod";
+
+interface AuthenticatedRequest extends Request {
+  userId?: number;
+}
 
 const loginSchema = z.object({
   username: z.string().min(1),
@@ -42,7 +46,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/auth/me", authMiddleware, async (req, res) => {
-    const user = await storage.getAdminUser(req.userId!);
+    const authReq = req as AuthenticatedRequest;
+    const user = await storage.getAdminUser(authReq.userId!);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -188,8 +193,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bookingData = insertBookingSchema.parse(req.body);
       
       // Create booking with travel APIs
-      const flightBooking = await travelApis.bookFlight(bookingData);
-      const hotelBooking = await travelApis.bookHotel(bookingData);
+      const flightBooking = await travelApis.bookFlight({
+        ...bookingData,
+        userId: bookingData.userId || undefined,
+      });
+      const hotelBooking = await travelApis.bookHotel({
+        ...bookingData,
+        userId: bookingData.userId || undefined,
+      });
       
       const booking = await storage.createBooking({
         ...bookingData,
