@@ -51,7 +51,6 @@ export default function AdminDashboard() {
   return (
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
-      
       <div className="flex-1 overflow-auto">
         {/* Header */}
         <div className="bg-gradient-amazon-ocean p-6 text-white">
@@ -83,7 +82,7 @@ export default function AdminDashboard() {
             </Card>
 
             <Card className="bg-gradient-to-br from-ocean to-blue-600 text-white">
-              <CardContent className="p-6">
+              <CardContent className="p-6 bg-[#3cb4e2]">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm opacity-80">Bookings</p>
