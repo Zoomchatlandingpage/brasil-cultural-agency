@@ -1,0 +1,502 @@
+// 👥 LEADS & CRM - BACKEND IMPLEMENTATION
+
+// 1. ENHANCED SCHEMA (shared/schema.ts additions)
+export const leadScoring = pgTable("lead_scoring", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").references(() => leads.id),
+  budgetScore: integer("budget_score").default(0),
+  timelineScore: integer("timeline_score").default(0),
+  engagementScore: integer("engagement_score").default(0),
+  profileMatchScore: integer("profile_match_score").default(0),
+  totalScore: integer("total_score").default(0),
+  scoreCategory: text("score_category").default("cold"), // hot, warm, qualified, cold, unqualified
+  lastCalculated: timestamp("last_calculated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const leadActivities = pgTable("lead_activities", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").references(() => leads.id),
+  activityType: text("activity_type").notNull(), // "message", "email", "call", "note", "status_change"
+  description: text("description").notNull(),
+  metadata: text("metadata"), // JSON string with additional data
+  performedBy: text("performed_by"), // admin username or "system"
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const leadNotes = pgTable("lead_notes", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").references(() => leads.id),
+  noteText: text("note_text").notNull(),
+  isPrivate: boolean("is_private").default(false),
+  isPinned: boolean("is_pinned").default(false),
+  createdBy: text("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const followUpSequences = pgTable("follow_up_sequences", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  triggerCondition: text("trigger_condition"), // JSON string defining when to trigger
+  steps: text("steps"), // JSON array of sequence steps
+  isActive: boolean("is_active").default(true),
+  conversionRate: decimal("conversion_rate", { precision: 5, scale: 2 }).default("0.0"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 2. LEAD SCORING SERVICE (server/services/lead-scoring.ts)
+interface ScoringCriteria {
+  budgetIndicators: { weight: number; thresholds: { [key: string]: number } };
+  timelineUrgency: { weight: number; thresholds: { [key: string]: number } };
+  engagementLevel: { weight: number; factors: string[] };
+  profileMatch: { weight: number; profiles: string[] };
+}
+
+class LeadScoringEngine {
+  private criteria: ScoringCriteria = {
+    budgetIndicators: {
+      weight: 30,
+      thresholds: {
+        "mentioned_specific": 10,
+        "over_4000": 15,
+        "luxury_interest": 20,
+        "price_shopping": -5,
+      }
+    },
+    timelineUrgency: {
+      weight: 25,
+      thresholds: {
+        "within_30_days": 25,
+        "within_90_days": 15,
+        "flexible_dates": 10,
+        "no_dates": 0,
+      }
+    },
+    engagementLevel: {
+      weight: 25,
+      factors: ["multiple_conversations", "specific_questions", "personal_info", "custom_request"]
+    },
+    profileMatch: {
+      weight: 20,
+      profiles: ["cultural_seeker", "adventure_spirit", "luxury_traveler", "first_timer"]
+    }
+  };
+
+  async calculateLeadScore(leadId: number): Promise<number> {
+    const lead = await storage.getLead(leadId);
+    if (!lead) throw new Error("Lead not found");
+
+    const user = lead.userId ? await storage.getUser(lead.userId) : null;
+    const activities = await storage.getLeadActivities(leadId);
+    
+    // Calculate individual scores
+    const budgetScore = this.calculateBudgetScore(lead, user, activities);
+    const timelineScore = this.calculateTimelineScore(lead, activities);
+    const engagementScore = this.calculateEngagementScore(activities);
+    const profileScore = this.calculateProfileMatchScore(lead, user);
+
+    const totalScore = Math.min(100, Math.max(0, 
+      budgetScore + timelineScore + engagementScore + profileScore
+    ));
+
+    // Determine category
+    const category = this.determineScoreCategory(totalScore);
+
+    // Save scoring record
+    await storage.createLeadScoring({
+      leadId,
+      budgetScore,
+      timelineScore,
+      engagementScore,
+      profileMatchScore: profileScore,
+      totalScore,
+      scoreCategory: category,
+    });
+
+    return totalScore;
+  }
+
+  private calculateBudgetScore(lead: any, user: any, activities: any[]): number {
+    let score = 0;
+    const { weight, thresholds } = this.criteria.budgetIndicators;
+
+    // Check for budget mentions in conversations
+    const budgetMentions = activities.filter(a => 
+      a.activityType === "message" && 
+      /\$[\d,]+|budget|cost|price/.test(a.description.toLowerCase())
+    );
+
+    if (budgetMentions.length > 0) {
+      score += thresholds.mentioned_specific;
+    }
+
+    // Check estimated budget from lead data
+    if (lead.estimatedBudget) {
+      const budget = parseFloat(lead.estimatedBudget);
+      if (budget >= 4000) score += thresholds.over_4000;
+      if (budget >= 6000) score += thresholds.luxury_interest;
+    }
+
+    // Check for luxury keywords
+    const luxuryKeywords = activities.some(a =>
+      /luxury|premium|first.class|high.end|exclusive/.test(a.description.toLowerCase())
+    );
+    if (luxuryKeywords) score += thresholds.luxury_interest;
+
+    // Penalty for price shopping
+    const priceShoppingKeywords = activities.some(a =>
+      /compare|cheaper|best.price|other.companies/.test(a.description.toLowerCase())
+    );
+    if (priceShoppingKeywords) score += thresholds.price_shopping;
+
+    return Math.round((score / weight) * this.criteria.budgetIndicators.weight);
+  }
+
+  private calculateTimelineScore(lead: any, activities: any[]): number {
+    let score = 0;
+    const { weight, thresholds } = this.criteria.timelineUrgency;
+
+    // Check travel dates
+    if (lead.travelDates) {
+      try {
+        const travelDate = new Date(lead.travelDates);
+        const now = new Date();
+        const daysUntilTravel = Math.ceil((travelDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (daysUntilTravel <= 30) score += thresholds.within_30_days;
+        else if (daysUntilTravel <= 90) score += thresholds.within_90_days;
+        else score += thresholds.flexible_dates;
+      } catch (e) {
+        score += thresholds.no_dates;
+      }
+    }
+
+    // Check for urgency keywords
+    const urgencyKeywords = activities.some(a =>
+      /urgent|soon|asap|next.week|this.month/.test(a.description.toLowerCase())
+    );
+    if (urgencyKeywords) score += 5;
+
+    return Math.round((score / weight) * this.criteria.timelineUrgency.weight);
+  }
+
+  private calculateEngagementScore(activities: any[]): number {
+    let score = 0;
+    const { weight, factors } = this.criteria.engagementLevel;
+
+    // Multiple conversations
+    const conversationDays = new Set(
+      activities
+        .filter(a => a.activityType === "message")
+        .map(a => new Date(a.createdAt).toDateString())
+    ).size;
+    if (conversationDays >= 3) score += 15;
+    else if (conversationDays >= 2) score += 10;
+
+    // Specific questions
+    const questionCount = activities.filter(a =>
+      a.activityType === "message" && a.description.includes("?")
+    ).length;
+    if (questionCount >= 5) score += 10;
+    else if (questionCount >= 3) score += 5;
+
+    // Personal information shared
+    const personalInfo = activities.some(a =>
+      /birthday|anniversary|honeymoon|family|group/.test(a.description.toLowerCase())
+    );
+    if (personalInfo) score += 15;
+
+    // Custom requests
+    const customRequests = activities.some(a =>
+      /customize|specific|special|particular/.test(a.description.toLowerCase())
+    );
+    if (customRequests) score += 20;
+
+    return Math.round((score / 60) * this.criteria.engagementLevel.weight);
+  }
+
+  private calculateProfileMatchScore(lead: any, user: any): number {
+    let score = 0;
+    const { weight } = this.criteria.profileMatch;
+
+    // Profile detected with high confidence
+    if (lead.profileType && lead.profileScore && parseFloat(lead.profileScore) > 0.8) {
+      score += 20;
+    } else if (lead.profileType) {
+      score += 10;
+    }
+
+    // Destination interest alignment
+    if (lead.recommendedDestinations) {
+      score += 10;
+    }
+
+    return Math.round((score / 30) * this.criteria.profileMatch.weight);
+  }
+
+  private determineScoreCategory(score: number): string {
+    if (score >= 90) return "hot";
+    if (score >= 70) return "warm";
+    if (score >= 50) return "qualified";
+    if (score >= 30) return "cold";
+    return "unqualified";
+  }
+}
+
+// 3. LEAD MANAGEMENT SERVICE (server/services/lead-management.ts)
+class LeadManagementService {
+  private scoringEngine = new LeadScoringEngine();
+
+  async getHotLeads(limit: number = 10) {
+    const hotLeads = await storage.getLeadsByScore("hot", limit);
+    
+    // Enrich with recent activities and user data
+    const enrichedLeads = await Promise.all(
+      hotLeads.map(async (lead) => {
+        const user = lead.userId ? await storage.getUser(lead.userId) : null;
+        const recentActivities = await storage.getLeadActivities(lead.id, 5);
+        const notes = await storage.getLeadNotes(lead.id);
+        const scoring = await storage.getLatestLeadScoring(lead.id);
+
+        return {
+          ...lead,
+          user,
+          recentActivities,
+          notes,
+          scoring,
+          lastActivity: recentActivities[0],
+        };
+      })
+    );
+
+    return enrichedLeads;
+  }
+
+  async getLeadsPipeline() {
+    const pipeline = {
+      new: await storage.getLeadsByStatus("new"),
+      qualified: await storage.getLeadsByStatus("qualified"),
+      engaged: await storage.getLeadsByStatus("engaged"),
+      proposal: await storage.getLeadsByStatus("proposal"),
+      closed_won: await storage.getLeadsByStatus("closed_won"),
+      closed_lost: await storage.getLeadsByStatus("closed_lost"),
+    };
+
+    // Calculate values for each stage
+    Object.keys(pipeline).forEach(stage => {
+      pipeline[stage] = pipeline[stage].map(lead => ({
+        ...lead,
+        value: parseFloat(lead.estimatedBudget || "0"),
+      }));
+    });
+
+    return pipeline;
+  }
+
+  async addLeadActivity(leadId: number, activity: {
+    activityType: string;
+    description: string;
+    metadata?: any;
+    performedBy: string;
+  }) {
+    // Create activity record
+    await storage.createLeadActivity({
+      leadId,
+      ...activity,
+      metadata: activity.metadata ? JSON.stringify(activity.metadata) : null,
+    });
+
+    // Recalculate lead score
+    await this.scoringEngine.calculateLeadScore(leadId);
+
+    // Check if lead should trigger follow-up sequence
+    await this.checkFollowUpTriggers(leadId);
+  }
+
+  async addLeadNote(leadId: number, note: {
+    noteText: string;
+    isPrivate?: boolean;
+    isPinned?: boolean;
+    createdBy: string;
+  }) {
+    return await storage.createLeadNote({
+      leadId,
+      ...note,
+    });
+  }
+
+  async updateLeadStatus(leadId: number, newStatus: string, performedBy: string) {
+    // Update lead status
+    await storage.updateLead(leadId, { status: newStatus });
+
+    // Log activity
+    await this.addLeadActivity(leadId, {
+      activityType: "status_change",
+      description: `Status changed to ${newStatus}`,
+      performedBy,
+    });
+
+    // Trigger relevant actions based on status
+    if (newStatus === "proposal") {
+      await this.triggerProposalSequence(leadId);
+    }
+  }
+
+  private async checkFollowUpTriggers(leadId: number) {
+    const lead = await storage.getLead(leadId);
+    const activities = await storage.getLeadActivities(leadId);
+    const sequences = await storage.getActiveFollowUpSequences();
+
+    // Check each sequence for trigger conditions
+    for (const sequence of sequences) {
+      const shouldTrigger = await this.evaluateSequenceTrigger(
+        sequence.triggerCondition,
+        lead,
+        activities
+      );
+
+      if (shouldTrigger) {
+        await this.startFollowUpSequence(leadId, sequence.id);
+      }
+    }
+  }
+
+  private async evaluateSequenceTrigger(
+    triggerCondition: string,
+    lead: any,
+    activities: any[]
+  ): Promise<boolean> {
+    try {
+      const conditions = JSON.parse(triggerCondition);
+      
+      // Example trigger conditions:
+      // { "type": "safety_concern", "keywords": ["safe", "safety", "dangerous"] }
+      // { "type": "price_objection", "keywords": ["expensive", "cost", "budget"] }
+      // { "type": "no_response", "hours": 48 }
+
+      if (conditions.type === "safety_concern") {
+        return activities.some(a =>
+          conditions.keywords.some(keyword =>
+            a.description.toLowerCase().includes(keyword)
+          )
+        );
+      }
+
+      if (conditions.type === "price_objection") {
+        return activities.some(a =>
+          conditions.keywords.some(keyword =>
+            a.description.toLowerCase().includes(keyword)
+          )
+        );
+      }
+
+      if (conditions.type === "no_response") {
+        const lastActivity = activities.find(a => a.activityType === "message");
+        if (lastActivity) {
+          const hoursSinceLastMessage = 
+            (Date.now() - new Date(lastActivity.createdAt).getTime()) / (1000 * 60 * 60);
+          return hoursSinceLastMessage >= conditions.hours;
+        }
+      }
+
+      return false;
+    } catch (e) {
+      console.error("Error evaluating trigger condition:", e);
+      return false;
+    }
+  }
+
+  private async startFollowUpSequence(leadId: number, sequenceId: number) {
+    // Implementation for starting automated follow-up sequences
+    // This would integrate with email service to send scheduled messages
+    console.log(`Starting follow-up sequence ${sequenceId} for lead ${leadId}`);
+  }
+
+  private async triggerProposalSequence(leadId: number) {
+    // Send proposal-specific follow-up
+    console.log(`Triggering proposal sequence for lead ${leadId}`);
+  }
+}
+
+// 4. API ROUTES (server/routes.ts additions)
+const leadManagement = new LeadManagementService();
+
+// Hot leads dashboard
+app.get("/api/admin/hot-leads", authMiddleware, async (req, res) => {
+  const hotLeads = await leadManagement.getHotLeads();
+  res.json(hotLeads);
+});
+
+// Pipeline view
+app.get("/api/admin/leads-pipeline", authMiddleware, async (req, res) => {
+  const pipeline = await leadManagement.getLeadsPipeline();
+  res.json(pipeline);
+});
+
+// Lead activities
+app.post("/api/admin/leads/:id/activities", authMiddleware, async (req, res) => {
+  const leadId = parseInt(req.params.id);
+  const authReq = req as AuthenticatedRequest;
+  const adminUser = await storage.getAdminUser(authReq.userId!);
+  
+  try {
+    await leadManagement.addLeadActivity(leadId, {
+      ...req.body,
+      performedBy: adminUser?.username || "Unknown",
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Lead notes
+app.post("/api/admin/leads/:id/notes", authMiddleware, async (req, res) => {
+  const leadId = parseInt(req.params.id);
+  const authReq = req as AuthenticatedRequest;
+  const adminUser = await storage.getAdminUser(authReq.userId!);
+  
+  try {
+    const note = await leadManagement.addLeadNote(leadId, {
+      ...req.body,
+      createdBy: adminUser?.username || "Unknown",
+    });
+    res.json(note);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Update lead status
+app.put("/api/admin/leads/:id/status", authMiddleware, async (req, res) => {
+  const leadId = parseInt(req.params.id);
+  const { status } = req.body;
+  const authReq = req as AuthenticatedRequest;
+  const adminUser = await storage.getAdminUser(authReq.userId!);
+  
+  try {
+    await leadManagement.updateLeadStatus(
+      leadId, 
+      status, 
+      adminUser?.username || "Unknown"
+    );
+    res.json({ success: true });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Lead scoring
+app.post("/api/admin/leads/:id/recalculate-score", authMiddleware, async (req, res) => {
+  const leadId = parseInt(req.params.id);
+  const scoringEngine = new LeadScoringEngine();
+  
+  try {
+    const score = await scoringEngine.calculateLeadScore(leadId);
+    res.json({ score });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+export { LeadScoringEngine, LeadManagementService };

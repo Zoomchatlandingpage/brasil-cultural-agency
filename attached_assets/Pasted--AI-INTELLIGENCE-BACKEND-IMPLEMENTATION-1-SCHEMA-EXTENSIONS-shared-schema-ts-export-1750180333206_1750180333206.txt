@@ -1,0 +1,446 @@
+// 🤖 AI INTELLIGENCE - BACKEND IMPLEMENTATION
+
+// 1. SCHEMA EXTENSIONS (shared/schema.ts)
+export const aiKnowledgeBase = pgTable("ai_knowledge_base", {
+  id: serial("id").primaryKey(),
+  category: text("category").notNull(), // "destinations", "objections", "profiles"
+  subcategory: text("subcategory"), // "rio", "safety", "cultural-seeker"
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  keywords: text("keywords"), // comma-separated
+  usageCount: integer("usage_count").default(0),
+  effectiveness: decimal("effectiveness", { precision: 3, scale: 2 }).default("0.0"),
+  isActive: boolean("is_active").default(true),
+  priority: integer("priority").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const conversationContext = pgTable("conversation_context", {
+  id: serial("id").primaryKey(),
+  conversationId: text("conversation_id").notNull(),
+  profileDetected: text("profile_detected"),
+  keywordsExtracted: text("keywords_extracted"),
+  sentimentScore: decimal("sentiment_score", { precision: 3, scale: 2 }),
+  intentClassification: text("intent_classification"),
+  contextData: text("context_data"), // JSON string
+  aiResponse: text("ai_response"),
+  userSatisfaction: integer("user_satisfaction"), // 1-5 rating
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 2. AI ENGINE SERVICE (server/services/ai-engine-enhanced.ts)
+import { storage } from "../storage";
+import { claudeAPI } from "./claude-client";
+
+interface AIKnowledgeItem {
+  category: string;
+  subcategory?: string;
+  title: string;
+  content: string;
+  keywords: string[];
+  priority: number;
+}
+
+interface ConversationContext {
+  profileDetected?: string;
+  previousMessages: string[];
+  detectedIntents: string[];
+  currentDestinationInterest?: string;
+  priceRange?: string;
+  travelDates?: string;
+  groupSize?: number;
+  concerns: string[];
+}
+
+class EnhancedAIEngine {
+  private knowledgeBase: Map<string, AIKnowledgeItem[]> = new Map();
+  
+  async initializeKnowledge() {
+    // Load knowledge base from database
+    const allKnowledge = await storage.getAllAiKnowledge();
+    
+    // Organize by category for fast lookup
+    allKnowledge.forEach(item => {
+      const category = item.category;
+      if (!this.knowledgeBase.has(category)) {
+        this.knowledgeBase.set(category, []);
+      }
+      this.knowledgeBase.get(category)!.push({
+        category: item.category,
+        subcategory: item.subcategory || undefined,
+        title: item.topic,
+        content: item.responseTemplate || "",
+        keywords: item.keywords?.split(',') || [],
+        priority: item.priority || 1,
+      });
+    });
+  }
+
+  async processMessage(
+    message: string, 
+    conversationId: string,
+    previousContext?: ConversationContext
+  ) {
+    // 1. ANALYZE USER MESSAGE
+    const analysis = await this.analyzeUserMessage(message, previousContext);
+    
+    // 2. DETECT PROFILE & INTENT
+    const profileDetection = await this.detectUserProfile(message, analysis);
+    
+    // 3. BUILD DYNAMIC CONTEXT
+    const dynamicContext = await this.buildDynamicContext(analysis, profileDetection);
+    
+    // 4. GENERATE INTELLIGENT RESPONSE
+    const response = await this.generateContextualResponse(
+      message, 
+      dynamicContext, 
+      conversationId
+    );
+    
+    // 5. SAVE CONTEXT FOR LEARNING
+    await this.saveConversationContext(conversationId, {
+      profileDetected: profileDetection.profile,
+      keywordsExtracted: analysis.keywords.join(','),
+      sentimentScore: analysis.sentiment,
+      intentClassification: analysis.intent,
+      contextData: JSON.stringify(dynamicContext),
+      aiResponse: response.message,
+    });
+
+    return response;
+  }
+
+  private async analyzeUserMessage(message: string, context?: ConversationContext) {
+    // Extract keywords, sentiment, intent
+    const keywords = this.extractKeywords(message);
+    const sentiment = await this.analyzeSentiment(message);
+    const intent = this.classifyIntent(message, keywords);
+    
+    return {
+      keywords,
+      sentiment,
+      intent,
+      destinations: this.extractDestinationMentions(message),
+      priceIndicators: this.extractPriceIndicators(message),
+      concerns: this.extractConcerns(message),
+    };
+  }
+
+  private async detectUserProfile(message: string, analysis: any) {
+    // Get profile detection knowledge
+    const profileKnowledge = this.knowledgeBase.get('profiles') || [];
+    
+    let bestMatch = { profile: 'general', confidence: 0 };
+    
+    profileKnowledge.forEach(profile => {
+      const matchScore = this.calculateKeywordMatch(
+        analysis.keywords, 
+        profile.keywords
+      );
+      
+      if (matchScore > bestMatch.confidence) {
+        bestMatch = {
+          profile: profile.subcategory || profile.title,
+          confidence: matchScore
+        };
+      }
+    });
+
+    return bestMatch;
+  }
+
+  private async buildDynamicContext(analysis: any, profileDetection: any) {
+    const context: any = {
+      profile: profileDetection.profile,
+      confidence: profileDetection.confidence,
+      destinations: [],
+      arguments: [],
+      objections: []
+    };
+
+    // Get destination information
+    if (analysis.destinations.length > 0) {
+      for (const dest of analysis.destinations) {
+        const destInfo = await storage.getDestinationByName(dest);
+        if (destInfo) {
+          context.destinations.push({
+            name: destInfo.name,
+            description: destInfo.description,
+            sellingPoints: destInfo.sellingPoints?.split(',') || [],
+            priceRange: `${destInfo.priceRangeMin}-${destInfo.priceRangeMax}`,
+            bestMonths: destInfo.bestMonths,
+          });
+        }
+      }
+    }
+
+    // Get relevant sales arguments
+    const salesArgs = this.knowledgeBase.get('arguments') || [];
+    context.arguments = salesArgs
+      .filter(arg => 
+        arg.subcategory === profileDetection.profile ||
+        analysis.destinations.some(dest => arg.subcategory?.includes(dest.toLowerCase()))
+      )
+      .map(arg => arg.content);
+
+    // Get objection handling if concerns detected
+    if (analysis.concerns.length > 0) {
+      const objectionKnowledge = this.knowledgeBase.get('objections') || [];
+      context.objections = objectionKnowledge
+        .filter(obj => 
+          analysis.concerns.some(concern => 
+            obj.keywords.some(keyword => 
+              concern.toLowerCase().includes(keyword.toLowerCase())
+            )
+          )
+        )
+        .map(obj => ({ concern: obj.title, response: obj.content }));
+    }
+
+    return context;
+  }
+
+  private async generateContextualResponse(
+    message: string, 
+    context: any, 
+    conversationId: string
+  ) {
+    // Build dynamic prompt with current knowledge
+    const prompt = this.buildDynamicPrompt(message, context);
+    
+    // Call Claude API with enhanced context
+    const claudeResponse = await claudeAPI.generateResponse(prompt);
+    
+    // Determine if package should be generated
+    const shouldGeneratePackage = this.shouldGeneratePackage(message, context);
+    
+    let packageData = null;
+    if (shouldGeneratePackage && context.destinations.length > 0) {
+      packageData = await this.generatePackageQuote(context.destinations[0], context.profile);
+    }
+
+    return {
+      message: claudeResponse,
+      profileDetected: context.confidence > 0.7 ? context.profile : undefined,
+      packageData,
+      conversationId,
+    };
+  }
+
+  private buildDynamicPrompt(message: string, context: any): string {
+    let prompt = `You are a Brazil travel consultant for Brasil Cultural Agency. 
+
+CURRENT CONVERSATION CONTEXT:
+- User Profile: ${context.profile} (${Math.round(context.confidence * 100)}% confidence)
+- User Message: "${message}"
+
+AVAILABLE KNOWLEDGE:
+`;
+
+    // Add destination knowledge
+    if (context.destinations.length > 0) {
+      prompt += `\nDESTINATIONS TO RECOMMEND:
+`;
+      context.destinations.forEach(dest => {
+        prompt += `- ${dest.name}: ${dest.description}
+  Price Range: $${dest.priceRange}
+  Best Time: ${dest.bestMonths}
+  Selling Points: ${dest.sellingPoints.join(', ')}
+`;
+      });
+    }
+
+    // Add sales arguments
+    if (context.arguments.length > 0) {
+      prompt += `\nSALES ARGUMENTS TO USE:
+${context.arguments.map(arg => `- ${arg}`).join('\n')}
+`;
+    }
+
+    // Add objection handling
+    if (context.objections.length > 0) {
+      prompt += `\nCONCERNS TO ADDRESS:
+${context.objections.map(obj => `- ${obj.concern}: ${obj.response}`).join('\n')}
+`;
+    }
+
+    prompt += `\nINSTRUCTIONS:
+1. Respond naturally and conversationally
+2. Use the knowledge above to provide specific, helpful information
+3. Address any concerns mentioned directly
+4. If appropriate, suggest specific destinations or experiences
+5. Keep response under 200 words
+6. Be enthusiastic but not pushy
+7. If they show high interest, mention that you can create a custom package
+
+Respond as the travel consultant:`;
+
+    return prompt;
+  }
+
+  private shouldGeneratePackage(message: string, context: any): boolean {
+    const packageTriggers = [
+      'how much', 'price', 'cost', 'package', 'quote', 
+      'book', 'interested', 'sign me up', 'sounds good'
+    ];
+    
+    return packageTriggers.some(trigger => 
+      message.toLowerCase().includes(trigger)
+    ) && context.destinations.length > 0;
+  }
+
+  private async generatePackageQuote(destination: any, profile: string) {
+    // Get packages for this destination
+    const packages = await storage.getTravelPackagesByDestination(destination.id);
+    
+    // Filter by profile if available
+    const suitablePackages = packages.filter(pkg => 
+      pkg.profileTargets?.includes(profile) || packages.length === 1
+    );
+    
+    const selectedPackage = suitablePackages[0] || packages[0];
+    
+    if (!selectedPackage) {
+      return null;
+    }
+
+    // Calculate dynamic pricing
+    const basePrice = parseFloat(selectedPackage.basePrice || "2000");
+    const markup = parseFloat(selectedPackage.markupPercentage || "25") / 100;
+    const finalPrice = Math.round(basePrice * (1 + markup));
+
+    return {
+      packageName: selectedPackage.name,
+      destination: destination.name,
+      duration: selectedPackage.durationDays,
+      basePrice: basePrice,
+      finalPrice: finalPrice,
+      savings: Math.round(finalPrice * 0.15), // Estimated savings vs DIY
+      includes: selectedPackage.includedServices?.split(',') || [],
+      flightIncluded: selectedPackage.flightIncluded,
+      hotelIncluded: selectedPackage.hotelIncluded,
+    };
+  }
+
+  // Helper methods
+  private extractKeywords(message: string): string[] {
+    const culturalKeywords = ['authentic', 'local', 'traditional', 'culture', 'history'];
+    const adventureKeywords = ['adventure', 'hiking', 'nature', 'outdoor', 'active'];
+    const safetyKeywords = ['safe', 'safety', 'dangerous', 'secure', 'worry'];
+    const priceKeywords = ['cheap', 'expensive', 'budget', 'cost', 'price', 'money'];
+    
+    const allKeywords = [...culturalKeywords, ...adventureKeywords, ...safetyKeywords, ...priceKeywords];
+    
+    return allKeywords.filter(keyword => 
+      message.toLowerCase().includes(keyword)
+    );
+  }
+
+  private async analyzeSentiment(message: string): Promise<number> {
+    // Simple sentiment analysis - could be enhanced with external API
+    const positiveWords = ['love', 'amazing', 'great', 'excited', 'wonderful', 'perfect'];
+    const negativeWords = ['worried', 'concerned', 'afraid', 'expensive', 'dangerous'];
+    
+    let score = 0;
+    positiveWords.forEach(word => {
+      if (message.toLowerCase().includes(word)) score += 0.2;
+    });
+    negativeWords.forEach(word => {
+      if (message.toLowerCase().includes(word)) score -= 0.2;
+    });
+    
+    return Math.max(-1, Math.min(1, score));
+  }
+
+  private classifyIntent(message: string, keywords: string[]): string {
+    if (keywords.some(k => ['price', 'cost', 'budget'].includes(k))) return 'pricing_inquiry';
+    if (keywords.some(k => ['safe', 'safety', 'dangerous'].includes(k))) return 'safety_concern';
+    if (message.includes('?')) return 'information_seeking';
+    if (keywords.some(k => ['book', 'interested', 'sign up'].includes(k))) return 'booking_intent';
+    return 'general_inquiry';
+  }
+
+  private extractDestinationMentions(message: string): string[] {
+    const destinations = ['rio', 'salvador', 'chapada', 'paraty', 'bahia', 'brazil'];
+    return destinations.filter(dest => 
+      message.toLowerCase().includes(dest)
+    );
+  }
+
+  private extractPriceIndicators(message: string): any {
+    const priceRegex = /\$(\d{1,2},?\d{3})/g;
+    const matches = message.match(priceRegex);
+    return matches ? matches.map(m => parseInt(m.replace(/[$,]/g, ''))) : [];
+  }
+
+  private extractConcerns(message: string): string[] {
+    const concerns = [];
+    if (message.toLowerCase().includes('safe')) concerns.push('safety');
+    if (message.toLowerCase().includes('language')) concerns.push('language');
+    if (message.toLowerCase().includes('expensive')) concerns.push('price');
+    if (message.toLowerCase().includes('alone')) concerns.push('solo_travel');
+    return concerns;
+  }
+
+  private calculateKeywordMatch(messageKeywords: string[], profileKeywords: string[]): number {
+    const matches = messageKeywords.filter(mk => 
+      profileKeywords.some(pk => pk.toLowerCase() === mk.toLowerCase())
+    );
+    return messageKeywords.length > 0 ? matches.length / messageKeywords.length : 0;
+  }
+
+  private async saveConversationContext(conversationId: string, context: any) {
+    await storage.createConversationContext({
+      conversationId,
+      ...context,
+    });
+  }
+}
+
+// 3. API ROUTES (server/routes.ts additions)
+app.get("/api/admin/ai-knowledge", authMiddleware, async (req, res) => {
+  const knowledge = await storage.getAllAiKnowledge();
+  res.json(knowledge);
+});
+
+app.post("/api/admin/ai-knowledge", authMiddleware, async (req, res) => {
+  try {
+    const knowledgeData = insertAiKnowledgeSchema.parse(req.body);
+    const knowledge = await storage.createAiKnowledge(knowledgeData);
+    
+    // Refresh AI engine knowledge
+    await aiEngine.initializeKnowledge();
+    
+    res.json(knowledge);
+  } catch (error) {
+    res.status(400).json({ message: "Invalid knowledge data" });
+  }
+});
+
+app.put("/api/admin/ai-knowledge/:id", authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const updates = insertAiKnowledgeSchema.partial().parse(req.body);
+    const knowledge = await storage.updateAiKnowledge(id, updates);
+    
+    if (!knowledge) {
+      return res.status(404).json({ message: "Knowledge item not found" });
+    }
+    
+    // Refresh AI engine knowledge
+    await aiEngine.initializeKnowledge();
+    
+    res.json(knowledge);
+  } catch (error) {
+    res.status(400).json({ message: "Invalid update data" });
+  }
+});
+
+app.get("/api/admin/conversation-analytics", authMiddleware, async (req, res) => {
+  const analytics = await storage.getConversationAnalytics();
+  res.json(analytics);
+});
+
+// Export enhanced AI engine
+export const enhancedAIEngine = new EnhancedAIEngine();

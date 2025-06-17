@@ -1,0 +1,475 @@
+// 🤖 AI INTELLIGENCE - FRONTEND IMPLEMENTATION
+
+// client/src/pages/admin-ai-intelligence.tsx
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Brain, MessageSquare, Target, Shield, BarChart3, Plus, Edit, Trash2, Save } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+
+interface AIKnowledge {
+  id: number;
+  category: string;
+  subcategory?: string;
+  topic: string;
+  context?: string;
+  responseTemplate?: string;
+  keywords?: string;
+  priority: number;
+  usageCount: number;
+  effectivenessScore: string;
+  createdAt: string;
+}
+
+interface ConversationAnalytics {
+  totalConversations: number;
+  averageConversationLength: number;
+  topProfiles: Array<{ profile: string; count: number; conversion: number }>;
+  topConcerns: Array<{ concern: string; count: number; resolved: number }>;
+  responseEffectiveness: number;
+}
+
+export default function AIIntelligence() {
+  const [selectedCategory, setSelectedCategory] = useState("destinations");
+  const [editingKnowledge, setEditingKnowledge] = useState<AIKnowledge | null>(null);
+  const [newKnowledge, setNewKnowledge] = useState({
+    category: "destinations",
+    subcategory: "",
+    topic: "",
+    context: "",
+    responseTemplate: "",
+    keywords: "",
+    priority: 1,
+  });
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Queries
+  const { data: knowledgeItems, isLoading: knowledgeLoading } = useQuery({
+    queryKey: ["/api/admin/ai-knowledge"],
+  });
+
+  const { data: analytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ["/api/admin/conversation-analytics"],
+  });
+
+  // Mutations
+  const createKnowledgeMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", "/api/admin/ai-knowledge", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/ai-knowledge"] });
+      setNewKnowledge({
+        category: "destinations",
+        subcategory: "",
+        topic: "",
+        context: "",
+        responseTemplate: "",
+        keywords: "",
+        priority: 1,
+      });
+      toast({
+        title: "Knowledge Added",
+        description: "AI knowledge base updated successfully!",
+      });
+    },
+  });
+
+  const updateKnowledgeMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const response = await apiRequest("PUT", `/api/admin/ai-knowledge/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/ai-knowledge"] });
+      setEditingKnowledge(null);
+      toast({
+        title: "Knowledge Updated",
+        description: "AI knowledge base updated successfully!",
+      });
+    },
+  });
+
+  const deleteKnowledgeMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/admin/ai-knowledge/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/ai-knowledge"] });
+      toast({
+        title: "Knowledge Deleted",
+        description: "Knowledge item removed from AI database.",
+      });
+    },
+  });
+
+  // Filter knowledge by category
+  const filteredKnowledge = knowledgeItems?.filter(
+    (item: AIKnowledge) => item.category === selectedCategory
+  ) || [];
+
+  const handleCreateKnowledge = () => {
+    createKnowledgeMutation.mutate(newKnowledge);
+  };
+
+  const handleUpdateKnowledge = () => {
+    if (editingKnowledge) {
+      updateKnowledgeMutation.mutate({
+        id: editingKnowledge.id,
+        data: editingKnowledge,
+      });
+    }
+  };
+
+  if (knowledgeLoading || analyticsLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <Brain className="mx-auto h-12 w-12 animate-pulse text-amazon" />
+          <p className="mt-4 text-lg">Loading AI Intelligence...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center space-x-3 mb-4">
+          <Brain className="h-8 w-8 text-amazon" />
+          <h1 className="text-3xl font-bold text-gray-800">AI Intelligence Center</h1>
+        </div>
+        <p className="text-gray-600">
+          Teach your AI how to sell, handle objections, and convert leads into bookings.
+        </p>
+      </div>
+
+      {/* Analytics Overview */}
+      <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <Card className="bg-gradient-to-br from-amazon to-green-600 text-white">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm opacity-80">Total Conversations</p>
+                <p className="text-3xl font-bold">{analytics?.totalConversations || 0}</p>
+              </div>
+              <MessageSquare className="h-8 w-8 opacity-80" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-ocean to-blue-600 text-white">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm opacity-80">Avg. Length</p>
+                <p className="text-3xl font-bold">{analytics?.averageConversationLength || 0}</p>
+                <p className="text-xs opacity-70">messages</p>
+              </div>
+              <BarChart3 className="h-8 w-8 opacity-80" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-sunset-gold text-white">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm opacity-80">Response Effectiveness</p>
+                <p className="text-3xl font-bold">{Math.round((analytics?.responseEffectiveness || 0) * 100)}%</p>
+              </div>
+              <Target className="h-8 w-8 opacity-80" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm opacity-80">Knowledge Items</p>
+                <p className="text-3xl font-bold">{knowledgeItems?.length || 0}</p>
+              </div>
+              <Brain className="h-8 w-8 opacity-80" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content */}
+      <Tabs defaultValue="knowledge" className="space-y-8">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
+          <TabsTrigger value="profiles">Profile Detection</TabsTrigger>
+          <TabsTrigger value="objections">Objection Handling</TabsTrigger>
+          <TabsTrigger value="analytics">Performance Analytics</TabsTrigger>
+        </TabsList>
+
+        {/* Knowledge Base Tab */}
+        <TabsContent value="knowledge" className="space-y-6">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Category Filter */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Categories</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {["destinations", "arguments", "objections", "profiles"].map((category) => (
+                  <Button
+                    key={category}
+                    variant={selectedCategory === category ? "default" : "outline"}
+                    className={`w-full justify-start ${
+                      selectedCategory === category ? "bg-amazon text-white" : ""
+                    }`}
+                    onClick={() => setSelectedCategory(category)}
+                  >
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                    <Badge variant="secondary" className="ml-auto">
+                      {knowledgeItems?.filter((item: AIKnowledge) => item.category === category).length || 0}
+                    </Badge>
+                  </Button>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Knowledge Items List */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Knowledge
+                  <Button size="sm" onClick={() => setEditingKnowledge({ ...newKnowledge, id: 0 } as AIKnowledge)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add New
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {filteredKnowledge.map((item: AIKnowledge) => (
+                  <div key={item.id} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold">{item.topic}</h4>
+                        {item.subcategory && (
+                          <Badge variant="outline" className="mt-1">
+                            {item.subcategory}
+                          </Badge>
+                        )}
+                        <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                          {item.responseTemplate}
+                        </p>
+                        {item.keywords && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {item.keywords.split(',').slice(0, 3).map((keyword, idx) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">
+                                {keyword.trim()}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex space-x-2 ml-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditingKnowledge(item)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => deleteKnowledgeMutation.mutate(item.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <span>Used: {item.usageCount} times</span>
+                      <span>Effectiveness: {Math.round(parseFloat(item.effectivenessScore) * 100)}%</span>
+                      <span>Priority: {item.priority}</span>
+                    </div>
+                  </div>
+                ))}
+
+                {filteredKnowledge.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    No knowledge items in this category yet.
+                    <br />
+                    <Button className="mt-4" onClick={() => setEditingKnowledge({ ...newKnowledge, id: 0 } as AIKnowledge)}>
+                      Add the first one
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Performance Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Top Profiles */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Detected Profiles</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {analytics?.topProfiles?.map((profile: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">{profile.profile}</p>
+                      <p className="text-sm text-gray-600">{profile.count} conversations</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-amazon">{profile.conversion}%</p>
+                      <p className="text-xs text-gray-500">conversion</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Top Concerns */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Common Customer Concerns</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {analytics?.topConcerns?.map((concern: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">{concern.concern}</p>
+                      <p className="text-sm text-gray-600">{concern.count} mentions</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-green-600">{concern.resolved}%</p>
+                      <p className="text-xs text-gray-500">resolved</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Edit/Create Knowledge Modal */}
+      {editingKnowledge && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <CardTitle>
+                {editingKnowledge.id === 0 ? "Add New" : "Edit"} Knowledge Item
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Category</label>
+                  <Select
+                    value={editingKnowledge.category}
+                    onValueChange={(value) =>
+                      setEditingKnowledge({ ...editingKnowledge, category: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="destinations">Destinations</SelectItem>
+                      <SelectItem value="arguments">Sales Arguments</SelectItem>
+                      <SelectItem value="objections">Objections</SelectItem>
+                      <SelectItem value="profiles">Profiles</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Subcategory</label>
+                  <Input
+                    value={editingKnowledge.subcategory || ""}
+                    onChange={(e) =>
+                      setEditingKnowledge({ ...editingKnowledge, subcategory: e.target.value })
+                    }
+                    placeholder="e.g., rio, safety, cultural-seeker"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Topic/Title</label>
+                <Input
+                  value={editingKnowledge.topic}
+                  onChange={(e) =>
+                    setEditingKnowledge({ ...editingKnowledge, topic: e.target.value })
+                  }
+                  placeholder="Brief title for this knowledge item"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Response Template</label>
+                <Textarea
+                  rows={4}
+                  value={editingKnowledge.responseTemplate || ""}
+                  onChange={(e) =>
+                    setEditingKnowledge({ ...editingKnowledge, responseTemplate: e.target.value })
+                  }
+                  placeholder="What should the AI say about this topic?"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Keywords (comma-separated)</label>
+                <Input
+                  value={editingKnowledge.keywords || ""}
+                  onChange={(e) =>
+                    setEditingKnowledge({ ...editingKnowledge, keywords: e.target.value })
+                  }
+                  placeholder="keywords, that, trigger, this, response"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Priority (1-10)</label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={editingKnowledge.priority}
+                  onChange={(e) =>
+                    setEditingKnowledge({ ...editingKnowledge, priority: parseInt(e.target.value) })
+                  }
+                />
+              </div>
+
+              <div className="flex space-x-4 pt-4">
+                <Button
+                  onClick={editingKnowledge.id === 0 ? handleCreateKnowledge : handleUpdateKnowledge}
+                  disabled={createKnowledgeMutation.isPending || updateKnowledgeMutation.isPending}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {editingKnowledge.id === 0 ? "Create" : "Update"}
+                </Button>
+                <Button variant="outline" onClick={() => setEditingKnowledge(null)}>
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -239,3 +239,129 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
     references: [travelPackages.id],
   }),
 }));
+
+// Enhanced AI Intelligence Schema
+export const aiKnowledgeBase = pgTable("ai_knowledge_base", {
+  id: serial("id").primaryKey(),
+  category: text("category").notNull(), // "destinations", "objections", "profiles"
+  subcategory: text("subcategory"), // "rio", "safety", "cultural-seeker"
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  keywords: text("keywords"), // comma-separated
+  usageCount: integer("usage_count").default(0),
+  effectiveness: decimal("effectiveness", { precision: 3, scale: 2 }).default("0.0"),
+  isActive: boolean("is_active").default(true),
+  priority: integer("priority").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const conversationContext = pgTable("conversation_context", {
+  id: serial("id").primaryKey(),
+  conversationId: text("conversation_id").notNull(),
+  profileDetected: text("profile_detected"),
+  keywordsExtracted: text("keywords_extracted"),
+  sentimentScore: decimal("sentiment_score", { precision: 3, scale: 2 }),
+  intentClassification: text("intent_classification"),
+  contextData: text("context_data"), // JSON string
+  aiResponse: text("ai_response"),
+  userSatisfaction: integer("user_satisfaction"), // 1-5 rating
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Enhanced Leads & CRM Schema
+export const leadScoring = pgTable("lead_scoring", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").references(() => leads.id),
+  budgetScore: integer("budget_score").default(0),
+  timelineScore: integer("timeline_score").default(0),
+  engagementScore: integer("engagement_score").default(0),
+  profileMatchScore: integer("profile_match_score").default(0),
+  totalScore: integer("total_score").default(0),
+  scoreCategory: text("score_category").default("cold"), // hot, warm, qualified, cold, unqualified
+  lastCalculated: timestamp("last_calculated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const leadActivities = pgTable("lead_activities", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").references(() => leads.id),
+  activityType: text("activity_type").notNull(), // "message", "email", "call", "note", "status_change"
+  description: text("description").notNull(),
+  metadata: text("metadata"), // JSON string with additional data
+  performedBy: text("performed_by"), // admin username or "system"
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const leadNotes = pgTable("lead_notes", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").references(() => leads.id),
+  noteText: text("note_text").notNull(),
+  isPrivate: boolean("is_private").default(false),
+  isPinned: boolean("is_pinned").default(false),
+  createdBy: text("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Media Library Schema
+export const mediaLibrary = pgTable("media_library", {
+  id: serial("id").primaryKey(),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  size: integer("size").notNull(),
+  category: text("category").default("general"), // destinations, experiences, people, social-media
+  tags: text("tags"), // comma-separated
+  altText: text("alt_text"),
+  uploadedBy: text("uploaded_by").notNull(),
+  usageCount: integer("usage_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Analytics Schema
+export const analyticsEvents = pgTable("analytics_events", {
+  id: serial("id").primaryKey(),
+  eventType: text("event_type").notNull(), // page_view, chat_start, lead_created, booking_made
+  sessionId: text("session_id"),
+  userId: integer("user_id").references(() => users.id),
+  leadId: integer("lead_id").references(() => leads.id),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  metadata: text("metadata"), // JSON string
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Enhanced Package Components Schema
+export const packageComponents = pgTable("package_components", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // flight, hotel, experience, transfer, meal
+  description: text("description"),
+  basePrice: decimal("base_price", { precision: 10, scale: 2 }),
+  markup: decimal("markup", { precision: 5, scale: 2 }).default("0.0"),
+  supplier: text("supplier"),
+  duration: integer("duration"), // in hours/days
+  capacity: integer("capacity"),
+  tags: text("tags"), // comma-separated
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Type exports for new schemas
+export type AIKnowledgeBase = typeof aiKnowledgeBase.$inferSelect;
+export type InsertAIKnowledgeBase = typeof aiKnowledgeBase.$inferInsert;
+export type ConversationContext = typeof conversationContext.$inferSelect;
+export type InsertConversationContext = typeof conversationContext.$inferInsert;
+export type LeadScoring = typeof leadScoring.$inferSelect;
+export type InsertLeadScoring = typeof leadScoring.$inferInsert;
+export type LeadActivity = typeof leadActivities.$inferSelect;
+export type InsertLeadActivity = typeof leadActivities.$inferInsert;
+export type LeadNote = typeof leadNotes.$inferSelect;
+export type InsertLeadNote = typeof leadNotes.$inferInsert;
+export type MediaFile = typeof mediaLibrary.$inferSelect;
+export type InsertMediaFile = typeof mediaLibrary.$inferInsert;
+export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+export type InsertAnalyticsEvent = typeof analyticsEvents.$inferInsert;
+export type PackageComponent = typeof packageComponents.$inferSelect;
+export type InsertPackageComponent = typeof packageComponents.$inferInsert;

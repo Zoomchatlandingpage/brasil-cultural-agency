@@ -1,0 +1,322 @@
+# 👥 LEADS & CRM - SISTEMA DE RELACIONAMENTO
+
+## 🎯 OBJETIVO: Transformar cada visitante em cliente fiel
+
+## 🔥 HOT LEADS DASHBOARD
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 🔥 HOT LEADS - Precisam Atenção AGORA                   │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ 🚨 URGENT (Next 24h): 7 leads                          │
+│                                                         │
+│ ┌─── LEAD #1847 ────────────────────────────────────┐   │
+│ │ 👤 Sarah Mitchell (NYC)             🔥 HOT LEAD   │   │
+│ │ 📧 sarah.m@email.com               📞 +1-555-123  │   │
+│ │                                                   │   │
+│ │ 🎯 PROFILE: Cultural Seeker (94% confidence)      │   │
+│ │ 💰 Budget: $4,000 💑 Couple travel               │   │
+│ │ 📅 Travel Dates: March 15-25 (3 weeks away!)     │   │
+│ │                                                   │   │
+│ │ 💬 LAST CONVERSATION (2h ago):                    │   │
+│ │ "Really interested in Salvador. Is it safe for   │   │
+│ │ two women traveling alone? Can you customize?"    │   │
+│ │                                                   │   │
+│ │ 🎯 AI RECOMMENDATION:                              │   │
+│ │ • Send safety testimonials video immediately      │   │
+│ │ • Offer customized Salvador package               │   │
+│ │ • Schedule video call within 4 hours              │   │
+│ │                                                   │   │
+│ │ 🔧 ACTIONS:                                        │   │
+│ │ [📞 Call Now] [📧 Send Safety Info] [🎥 Video Call]│   │
+│ │ [💰 Send Quote] [📱 WhatsApp] [⭐ Mark Priority]  │   │
+│ └───────────────────────────────────────────────────┘   │
+│                                                         │
+│ ┌─── LEAD #1846 ────────────────────────────────────┐   │
+│ │ 👤 Mike Chen (San Francisco)        🟡 WARM LEAD │   │
+│ │ 📧 mike.chen@techco.com            📞 +1-555-456 │   │
+│ │                                                   │   │
+│ │ 🎯 PROFILE: Adventure Spirit + Tech Professional  │   │
+│ │ 💰 Budget: $6,000+ 👤 Solo travel                │   │
+│ │ 📅 Travel Dates: April 10-20                     │   │
+│ │                                                   │   │
+│ │ 💬 CONVERSATION SUMMARY:                           │   │
+│ │ Asked about Rio + Chapada combo, mentioned       │   │
+│ │ photography interests, wants "off beaten path"    │   │
+│ │                                                   │   │
+│ │ 🎯 AI RECOMMENDATION:                              │   │
+│ │ • Propose Rio + Chapada photography tour          │   │
+│ │ • Highlight drone filming opportunities           │   │
+│ │ • Connect with local photographer guide           │   │
+│ │                                                   │   │
+│ │ [🎨 Custom Package] [📸 Photo Tour] [💬 Follow Up]│   │
+│ └───────────────────────────────────────────────────┘   │
+│                                                         │
+│ [👁️ View All Hot Leads] [📊 Lead Scoring] [⚙️ Settings] │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 📋 LEADS PIPELINE
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 📋 SALES PIPELINE - Visual Lead Management             │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ 🌱 NEW       🔍 QUALIFIED    💬 ENGAGED     💰 PROPOSAL │
+│ (23 leads)   (15 leads)     (8 leads)     (5 leads)    │
+│ ┌─────────┐ ┌─────────────┐ ┌───────────┐ ┌─────────────┐│
+│ │ Sarah M.│ │ Mike Chen   │ │ Lisa Park │ │ Robert Kim  ││
+│ │ $4,000  │ │ $6,000+     │ │ $3,200    │ │ $5,500      ││
+│ │ 2h ago  │ │ 1 day ago   │ │ Interested│ │ Reviewing   ││
+│ │         │ │             │ │ Salvador  │ │ Rio Luxury  ││
+│ │ John D. │ │ Emma Wilson │ │           │ │             ││
+│ │ $2,800  │ │ $4,200      │ │ Carlos R. │ │ Ana Silva   ││
+│ │ 4h ago  │ │ 2 days ago  │ │ $2,900    │ │ $7,200      ││
+│ │         │ │             │ │ Adventure │ │ Honeymoon   ││
+│ │ [+20]   │ │ [+13]       │ │ [+6]      │ │ [+3]        ││
+│ └─────────┘ └─────────────┘ └───────────┘ └─────────────┘│
+│                                                         │
+│                           📝 CLOSED                     │
+│                           (12 this month)               │
+│                        ┌─────────────────┐              │
+│                        │ ✅ Won: 8 deals  │              │
+│                        │ 💰 $19,400 value│              │
+│                        │                 │              │
+│                        │ ❌ Lost: 4 deals │              │
+│                        │ 📝 Reasons logged│              │
+│                        └─────────────────┘              │
+│                                                         │
+│ [📊 Pipeline Analytics] [🔄 Move Leads] [+ Add Lead]    │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 👤 CUSTOMER PROFILE VIEW
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 👤 CUSTOMER PROFILE: Sarah Mitchell                     │
+├─ TABS: [🏠 Overview] [💬 Conversations] [📋 Notes] [📈 Analytics] ─┤
+│                                                         │
+│ 📊 CUSTOMER SCORE: 94/100 🔥 HIGH VALUE                │
+│                                                         │
+│ 👤 PERSONAL INFO:                                       │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ Name: Sarah Mitchell          Age: 32                │ │
+│ │ Email: sarah.m@email.com      Phone: +1-555-0123    │ │
+│ │ Location: New York, NY        Job: Marketing Manager │ │
+│ │ Instagram: @sarah_wanderlust  LinkedIn: /sarah-m     │ │
+│ │                                                     │ │
+│ │ Travel Profile: Cultural Seeker + First Timer       │ │
+│ │ Budget Range: $3,500 - $4,500                       │ │
+│ │ Group Type: Couple (with boyfriend Tom)             │ │
+│ │ Interests: Culture, food, photography, safety       │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ 🎯 AI INSIGHTS:                                         │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ Personality: Detail-oriented, safety-conscious      │ │
+│ │ Decision Style: Research-heavy, seeks reassurance   │ │
+│ │ Booking Timeline: 2-3 weeks (thorough planner)      │ │
+│ │ Price Sensitivity: Medium (values quality > cost)   │ │
+│ │                                                     │ │
+│ │ Best Approach:                                      │ │
+│ │ • Lead with safety testimonials                     │ │
+│ │ • Provide detailed itineraries                      │ │
+│ │ • Offer video call for personal touch               │ │
+│ │ • Share previous couple testimonials                │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ 💬 CONVERSATION HISTORY:                                │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ 📅 Today, 2:15 PM - AI Chat                        │ │
+│ │ S: "Really interested in Salvador. Is it safe?"    │ │
+│ │ A: "Great question! Safety is our #1 priority..." │ │
+│ │ S: "Can you customize the cultural experiences?"   │ │
+│ │ A: "Absolutely! We can arrange private..."         │ │
+│ │                                                     │ │
+│ │ 📅 Yesterday, 4:30 PM - AI Chat                    │ │
+│ │ S: "What's included in the Salvador package?"      │ │
+│ │ A: "The 6-day Salvador experience includes..."     │ │
+│ │                                                     │ │
+│ │ [📖 View Full History] [💬 Continue Chat]           │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ 📋 STAFF NOTES:                                         │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ ✏️ Lucas (Admin): "Very interested, mentioned       │ │
+│ │ boyfriend Tom multiple times. Focus on couples     │ │
+│ │ testimonials. She asked specifically about         │ │
+│ │ Pelourinho safety - send Jennifer's video!"        │ │
+│ │ Added: 3 hours ago                                 │ │
+│ │                                                     │ │
+│ │ [+ Add Note] [📌 Pin Important] [👥 Share Notes]   │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ 🎯 NEXT ACTIONS:                                        │
+│ [📞 Schedule Call] [📧 Send Safety Video] [💰 Quote]    │
+│ [📱 WhatsApp] [📋 Create Custom Package] [⭐ Follow Up] │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 📧 AUTOMATED FOLLOW-UP SYSTEM
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 🤖 AUTOMATED FOLLOW-UP SEQUENCES                       │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ 📋 ACTIVE SEQUENCES:                                    │
+│                                                         │
+│ ┌─── "SAFETY CONCERNED LEADS" SEQUENCE ──────────────┐  │
+│ │ 👥 Active Leads: 12                                │  │
+│ │                                                     │  │
+│ │ Day 1: Safety testimonial video + PDF guide        │  │
+│ │ Day 3: Female traveler stories blog post           │  │
+│ │ Day 7: Video call invitation with safety focus     │  │
+│ │ Day 14: Limited-time security package offer        │  │
+│ │                                                     │  │
+│ │ Performance: 34% conversion (4/12 booked)          │  │
+│ │ [✏️ Edit Sequence] [📊 Analytics] [⏸️ Pause]        │  │
+│ └─────────────────────────────────────────────────────┘  │
+│                                                         │
+│ ┌─── "LUXURY TRAVELERS" SEQUENCE ────────────────────┐  │
+│ │ 👥 Active Leads: 8                                 │  │
+│ │                                                     │  │
+│ │ Day 1: Premium experiences showcase video           │  │
+│ │ Day 2: Exclusive access offers (private guides)    │  │
+│ │ Day 5: High-end accommodation tour                  │  │
+│ │ Day 10: VIP concierge service introduction          │  │
+│ │                                                     │  │
+│ │ Performance: 67% conversion (amazing!)             │  │
+│ │ [✏️ Edit Sequence] [📊 Analytics] [⏸️ Pause]        │  │
+│ └─────────────────────────────────────────────────────┘  │
+│                                                         │
+│ ┌─── "PRICE OBJECTION" SEQUENCE ─────────────────────┐  │
+│ │ 👥 Active Leads: 15                                │  │
+│ │                                                     │  │
+│ │ Day 1: Value breakdown - why we're worth it        │  │
+│ │ Day 3: Cost comparison with DIY travel             │  │
+│ │ Day 7: Payment plan options                        │  │
+│ │ Day 10: Early bird discount (limited time)         │  │
+│ │                                                     │  │
+│ │ Performance: 23% conversion (needs improvement)    │  │
+│ │ [✏️ Edit Sequence] [📊 Analytics] [⏸️ Pause]        │  │
+│ └─────────────────────────────────────────────────────┘  │
+│                                                         │
+│ [+ CREATE NEW SEQUENCE] [📊 Overall Performance]        │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 📊 LEAD SCORING ENGINE
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 🎯 INTELLIGENT LEAD SCORING                             │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ 🧮 SCORING CRITERIA:                                    │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ 💰 BUDGET INDICATORS (Max: 30 points)               │ │
+│ │ • Mentioned specific budget: +10                    │ │
+│ │ • Budget over $4,000: +15                          │ │
+│ │ • Asked about luxury options: +20                  │ │
+│ │ • Price shopping multiple providers: -5             │ │
+│ │                                                     │ │
+│ │ 📅 TIMELINE URGENCY (Max: 25 points)                │ │
+│ │ • Travel within 30 days: +25                       │ │
+│ │ • Travel within 90 days: +15                       │ │
+│ │ • Flexible dates: +10                              │ │
+│ │ • No dates mentioned: +0                           │ │
+│ │                                                     │ │
+│ │ 💬 ENGAGEMENT LEVEL (Max: 25 points)                │ │
+│ │ • Multiple conversations: +15                       │ │
+│ │ • Asked specific questions: +10                     │ │
+│ │ • Shared personal preferences: +15                  │ │
+│ │ • Requested custom package: +20                     │ │
+│ │                                                     │ │
+│ │ 🎯 PROFILE MATCH (Max: 20 points)                   │ │
+│ │ • Perfect destination match: +20                    │ │
+│ │ • Good experience match: +15                        │ │
+│ │ • Demographic match: +10                           │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ 🎖️ SCORE CATEGORIES:                                    │
+│ • 90-100: 🔥 HOT (immediate attention)                  │
+│ • 70-89: 🟡 WARM (follow up within 24h)                │
+│ • 50-69: 🟢 QUALIFIED (standard sequence)               │
+│ • 30-49: 🔵 COLD (nurture sequence)                     │
+│ • 0-29: ❄️ UNQUALIFIED (minimal effort)                │
+│                                                         │
+│ [⚙️ Adjust Scoring] [📊 Score Distribution] [🧪 Test]   │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 📱 COMMUNICATION HUB
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 📱 MULTI-CHANNEL COMMUNICATION CENTER                  │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ 💬 UNIFIED INBOX:                                       │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ 📧 Email (23 unread)                               │ │
+│ │ ├─ Sarah M: "Questions about Salvador safety"      │ │
+│ │ ├─ Mike C: "Rio + Chapada combo pricing?"          │ │
+│ │ └─ Lisa P: "Vegetarian food options"               │ │
+│ │                                                     │ │
+│ │ 📱 WhatsApp (5 unread)                             │ │
+│ │ ├─ Carlos R: "Chegou meu documento?" (Portuguese)  │ │
+│ │ ├─ Emma W: "Flight change request"                 │ │
+│ │ └─ Tom S: "Weather update needed"                  │ │
+│ │                                                     │ │
+│ │ 💬 Live Chat (12 active)                           │ │
+│ │ ├─ Anonymous: "Budget for family of 4?"           │ │
+│ │ ├─ Jennifer: "Solo female travel options"         │ │
+│ │ └─ Robert: "Luxury accommodations in Rio"         │ │
+│ │                                                     │ │
+│ │ [📧 Compose] [📱 Bulk SMS] [💬 Live Chat]           │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ 📋 QUICK RESPONSES:                                     │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ 🛡️ Safety Concerns:                                 │ │
+│ │ "Safety is our #1 priority. We've had 500+ happy   │ │
+│ │ travelers with zero incidents. Our local guides..." │ │
+│ │                                                     │ │
+│ │ 💰 Price Questions:                                 │ │
+│ │ "Great question! Our packages range from $X to $Y  │ │
+│ │ depending on your preferences. Let me create..."    │ │
+│ │                                                     │ │
+│ │ 📅 Availability:                                    │ │
+│ │ "We have availability for those dates! The best    │ │
+│ │ time to visit [destination] is actually..."         │ │
+│ │                                                     │ │
+│ │ [+ Add Template] [✏️ Edit] [📊 Usage Stats]         │ │
+│ └─────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 💡 IMPLEMENTATION PRIORITY:
+
+### 🔥 PHASE 1 (Essential):
+1. **Lead List & Scoring** - Basic CRM functionality
+2. **Hot Leads Dashboard** - Priority lead identification
+3. **Simple Notes System** - Track customer interactions
+4. **Email Integration** - Unified communication
+
+### ⚡ PHASE 2 (Professional):
+1. **Automated Sequences** - Follow-up workflows
+2. **Visual Pipeline** - Drag & drop lead management
+3. **Customer Profiles** - Detailed lead intelligence
+4. **Multi-channel Inbox** - WhatsApp, SMS, chat
+
+### 🎯 PHASE 3 (Enterprise):
+1. **Advanced Scoring** - AI-powered lead qualification
+2. **Predictive Analytics** - Lead conversion forecasting
+3. **Mobile CRM App** - On-the-go lead management
+4. **Integration Hub** - Connect external CRM tools
+
+Esta aba transforma você no **Master of Relationships** - cada lead se torna um cliente, cada cliente se torna um fã! 👥✨
