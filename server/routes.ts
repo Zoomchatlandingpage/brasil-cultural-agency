@@ -7,6 +7,7 @@ import { travelApis } from "./services/travel-apis";
 import { emailService } from "./services/email";
 import { insertUserSchema, insertLeadSchema, insertDestinationSchema, insertTravelPackageSchema, insertBookingSchema } from "@shared/schema";
 import { z } from "zod";
+import clientRoutes from './client-routes';
 
 interface AuthenticatedRequest extends Request {
   userId?: number;
@@ -595,6 +596,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch analytics" });
     }
   });
+
+  // Register client routes
+  app.use('/api/client', clientRoutes);
 
   // Helper function for time formatting
   function formatTimeAgo(dateString: string): string {

@@ -326,7 +326,7 @@ export const insertCustomServiceSchema = createInsertSchema(customServices).omit
   createdAt: true,
 });
 
-export const insertPackageComponentSchema = createInsertSchema(packageComponents).omit({
+export const insertClientPackageComponentSchema = createInsertSchema(clientPackageComponents).omit({
   id: true,
   createdAt: true,
 });
@@ -341,8 +341,8 @@ export type ClientPackage = typeof clientPackages.$inferSelect;
 export type InsertClientPackage = z.infer<typeof insertClientPackageSchema>;
 export type CustomService = typeof customServices.$inferSelect;
 export type InsertCustomService = z.infer<typeof insertCustomServiceSchema>;
-export type PackageComponent = typeof packageComponents.$inferSelect;
-export type InsertPackageComponent = z.infer<typeof insertPackageComponentSchema>;
+export type ClientPackageComponent = typeof clientPackageComponents.$inferSelect;
+export type InsertClientPackageComponent = z.infer<typeof insertClientPackageComponentSchema>;
 export type ClientBooking = typeof clientBookings.$inferSelect;
 export type InsertClientBooking = z.infer<typeof insertClientBookingSchema>;
 
@@ -352,13 +352,13 @@ export const clientPackagesRelations = relations(clientPackages, ({ one, many })
     fields: [clientPackages.userId],
     references: [users.id],
   }),
-  components: many(packageComponents),
+  components: many(clientPackageComponents),
   bookings: many(clientBookings),
 }));
 
-export const packageComponentsRelations = relations(packageComponents, ({ one }) => ({
+export const clientPackageComponentsRelations = relations(clientPackageComponents, ({ one }) => ({
   package: one(clientPackages, {
-    fields: [packageComponents.packageId],
+    fields: [clientPackageComponents.packageId],
     references: [clientPackages.id],
   }),
 }));
