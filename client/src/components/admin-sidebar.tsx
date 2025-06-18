@@ -16,7 +16,10 @@ import {
   ChevronRight,
   Globe,
   Flame,
-  Star
+  Star,
+  UserCheck,
+  Plane,
+  Hotel
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
@@ -35,6 +38,13 @@ const navigationItems = [
   { icon: TrendingUp, label: "Analytics", href: "/admin/analytics", active: false },
   { icon: Image, label: "Content & Media", href: "/admin/content", active: false },
   { icon: Settings, label: "API Management", href: "/admin/apis", active: false },
+];
+
+const clientDashboardItems = [
+  { icon: UserCheck, label: "Dashboard Integrado", href: "/client-dashboard-integrated", active: false },
+  { icon: Star, label: "BRASIL UNBOXED (Cliente)", href: "/brasil-unboxed", active: false },
+  { icon: Plane, label: "Busca de Voos", href: "/client-dashboard-integrated?tab=flights", active: false },
+  { icon: Hotel, label: "Busca de Hotéis", href: "/client-dashboard-integrated?tab=hotels", active: false },
 ];
 
 export default function AdminSidebar() {
@@ -110,6 +120,31 @@ export default function AdminSidebar() {
             );
           })}
         </nav>
+
+        {/* Client Dashboard Section */}
+        {!collapsed && (
+          <div className="mt-8">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Dashboard do Cliente
+            </div>
+            <nav className="space-y-1">
+              {clientDashboardItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <Button
+                    key={item.href}
+                    variant="ghost"
+                    className="w-full justify-start px-3 text-gray-600 hover:bg-gray-50"
+                    onClick={() => setLocation(item.href)}
+                  >
+                    <IconComponent className="h-5 w-5 mr-3" />
+                    <span className="font-medium">{item.label}</span>
+                  </Button>
+                );
+              })}
+            </nav>
+          </div>
+        )}
       </div>
 
       {/* Footer */}

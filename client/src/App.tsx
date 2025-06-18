@@ -13,6 +13,7 @@ import DestinationsAdmin from "@/pages/admin/destinations";
 import PackagesAdmin from "@/pages/admin/packages";
 import BrasilUnboxed from "@/pages/admin/brasil-unboxed";
 import BrasilUnboxedClient from "@/pages/brasil-unboxed";
+import ClientDashboardIntegrated from "@/pages/client-dashboard-integrated";
 import ClientLogin from "@/pages/client-login";
 import ClientDashboard from "@/pages/client-dashboard";
 import NotFound from "@/pages/not-found";
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/admin/packages" component={PackagesAdmin} />
       <Route path="/admin/brasil-unboxed" component={BrasilUnboxed} />
       <Route path="/brasil-unboxed" component={BrasilUnboxedClient} />
+      <Route path="/client-dashboard-integrated" component={ClientDashboardIntegrated} />
       <Route path="/client/login" component={ClientLogin} />
       <Route path="/client/dashboard" component={ClientDashboard} />
       <Route path="/dashboard" component={ClientDashboard} />

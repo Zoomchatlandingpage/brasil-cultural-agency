@@ -683,6 +683,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return date.toLocaleDateString();
   }
 
+  // Flight Search API endpoint
+  app.post("/api/search/flights", async (req, res) => {
+    try {
+      const { from, to, departure, return: returnDate, passengers } = req.body;
+      
+      const mockFlights = [
+        {
+          id: "flight_1",
+          airline: "LATAM",
+          from: from || "New York",
+          to: to || "Rio de Janeiro", 
+          departure: departure || "2025-07-15",
+          return: returnDate || "2025-07-25",
+          price: "1,200",
+          duration: "11h 30m",
+          stops: "1 stop"
+        },
+        {
+          id: "flight_2",
+          airline: "Azul", 
+          from: from || "New York",
+          to: to || "São Paulo",
+          departure: departure || "2025-07-15", 
+          return: returnDate || "2025-07-25",
+          price: "1,050",
+          duration: "10h 45m",
+          stops: "Direct"
+        }
+      ];
+
+      res.json({ success: true, flights: mockFlights });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to search flights" });
+    }
+  });
+
+  // Hotel Search API endpoint
+  app.post("/api/search/hotels", async (req, res) => {
+    try {
+      const { destination, checkin, checkout, guests } = req.body;
+      
+      const mockHotels = [
+        {
+          id: "hotel_1",
+          name: "Copacabana Palace",
+          location: destination || "Rio de Janeiro",
+          rating: 5,
+          price: "450",
+          image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400",
+          amenities: ["Pool", "Spa", "Beach Access"]
+        },
+        {
+          id: "hotel_2", 
+          name: "Hotel Fasano Rio de Janeiro",
+          location: destination || "Rio de Janeiro",
+          rating: 5,
+          price: "380", 
+          image: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=400",
+          amenities: ["Pool", "Gym", "Restaurant"]
+        }
+      ];
+
+      res.json({ success: true, hotels: mockHotels });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to search hotels" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
