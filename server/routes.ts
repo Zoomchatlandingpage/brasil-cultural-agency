@@ -24,8 +24,8 @@ const chatMessageSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth routes
-  app.post("/api/auth/login", async (req, res) => {
+  // Admin Auth routes
+  app.post("/api/auth/admin/login", async (req, res) => {
     try {
       const { username, password } = loginSchema.parse(req.body);
       const user = await storage.verifyAdminUser(username, password);
@@ -41,12 +41,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/logout", async (req, res) => {
+  app.post("/api/auth/admin/logout", async (req, res) => {
     await destroySession(req);
     res.json({ message: "Logged out successfully" });
   });
 
-  app.get("/api/auth/me", authMiddleware, async (req, res) => {
+  app.get("/api/auth/admin/me", authMiddleware, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
     const user = await storage.getAdminUser(authReq.userId!);
     if (!user) {
