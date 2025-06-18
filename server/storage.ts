@@ -3,8 +3,9 @@ import {
   Destination, InsertDestination, TravelPackage, InsertTravelPackage,
   Booking, InsertBooking, AiKnowledge, InsertAiKnowledge,
   ApiConfig, InsertApiConfig, TravelOperator, InsertTravelOperator,
+  Experience, InsertExperience,
   users, adminUsers, leads, destinations, travelPackages, bookings,
-  aiKnowledge, apiConfigs, travelOperators
+  aiKnowledge, apiConfigs, travelOperators, experiences
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -74,6 +75,14 @@ export interface IStorage {
   getAllTravelOperators(): Promise<TravelOperator[]>;
   createTravelOperator(travelOperator: InsertTravelOperator): Promise<TravelOperator>;
   updateTravelOperator(id: number, updates: Partial<InsertTravelOperator>): Promise<TravelOperator | undefined>;
+
+  // BRASIL UNBOXED - Experiences
+  getAllExperiences(): Promise<Experience[]>;
+  getActiveExperiences(): Promise<Experience[]>;
+  getExperiencesByCategory(category: string): Promise<Experience[]>;
+  createExperience(experience: InsertExperience): Promise<Experience>;
+  updateExperience(id: number, updates: Partial<InsertExperience>): Promise<Experience | undefined>;
+  deleteExperience(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -86,6 +95,7 @@ export class MemStorage implements IStorage {
   private aiKnowledge: Map<number, AiKnowledge>;
   private apiConfigs: Map<number, ApiConfig>;
   private travelOperators: Map<number, TravelOperator>;
+  private experiences: Map<number, Experience>;
   private currentId: number;
 
   constructor() {
@@ -98,6 +108,7 @@ export class MemStorage implements IStorage {
     this.aiKnowledge = new Map();
     this.apiConfigs = new Map();
     this.travelOperators = new Map();
+    this.experiences = new Map();
     this.currentId = 1;
     this.initializeData();
   }
@@ -523,6 +534,43 @@ export class MemStorage implements IStorage {
     const updatedOperator = { ...operator, ...updates };
     this.travelOperators.set(id, updatedOperator);
     return updatedOperator;
+  }
+
+  // BRASIL UNBOXED - Experiences Implementation
+  async getAllExperiences(): Promise<Experience[]> {
+    return Array.from(this.experiences.values());
+  }
+
+  async getActiveExperiences(): Promise<Experience[]> {
+    return Array.from(this.experiences.values()).filter(exp => exp.active);
+  }
+
+  async getExperiencesByCategory(category: string): Promise<Experience[]> {
+    return Array.from(this.experiences.values()).filter(exp => exp.category === category && exp.active);
+  }
+
+  async createExperience(experience: InsertExperience): Promise<Experience> {
+    const id = this.currentId++;
+    const newExperience: Experience = {
+      ...experience,
+      id,
+      createdAt: new Date(),
+    };
+    this.experiences.set(id, newExperience);
+    return newExperience;
+  }
+
+  async updateExperience(id: number, updates: Partial<InsertExperience>): Promise<Experience | undefined> {
+    const experience = this.experiences.get(id);
+    if (!experience) return undefined;
+    
+    const updatedExperience = { ...experience, ...updates };
+    this.experiences.set(id, updatedExperience);
+    return updatedExperience;
+  }
+
+  async deleteExperience(id: number): Promise<boolean> {
+    return this.experiences.delete(id);
   }
 }
 

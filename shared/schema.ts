@@ -481,3 +481,23 @@ export type MediaFile = typeof mediaLibrary.$inferSelect;
 export type InsertMediaFile = typeof mediaLibrary.$inferInsert;
 export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
 export type InsertAnalyticsEvent = typeof analyticsEvents.$inferInsert;
+
+// BRASIL UNBOXED - Experiências Culturais
+export const experiences = pgTable("experiences", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  duration: text("duration").notNull(),
+  category: text("category").notNull(), // Day Adventures, Beach & Relax, Night Life, Exclusive, Cultural
+  mediaUrl: text("media_url").notNull(),
+  isVideo: boolean("is_video").default(false),
+  localOnly: boolean("local_only").default(false),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertExperienceSchema = createInsertSchema(experiences);
+
+export type Experience = typeof experiences.$inferSelect;
+export type InsertExperience = typeof experiences.$inferInsert;

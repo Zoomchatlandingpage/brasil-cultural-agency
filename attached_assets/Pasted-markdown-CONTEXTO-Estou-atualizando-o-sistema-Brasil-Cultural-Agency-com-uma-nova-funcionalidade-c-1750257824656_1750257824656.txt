@@ -1,0 +1,100 @@
+markdown## CONTEXTO
+Estou atualizando o sistema Brasil Cultural Agency com uma nova funcionalidade chamada "BRASIL UNBOXED". 
+O sistema já possui um dashboard funcional para clientes e painel administrativo.
+
+## NOVA FUNCIONALIDADE: EXPERIÊNCIAS CULTURAIS
+
+### 1. PAINEL ADMIN - Adicionar Nova Seção
+Criar uma nova aba/seção chamada "Experiências" onde posso cadastrar:
+
+CAMPOS DO FORMULÁRIO:
+- title: string (máx 50 caracteres)
+- description: string (máx 150 caracteres) 
+- price: number
+- duration: string (ex: "2 hours", "Full day")
+- category: select com opções:
+  - "Day Adventures"
+  - "Beach & Relax"
+  - "Night Life"
+  - "Exclusive"
+  - "Cultural"
+- mediaUrl: string (URL da imagem ou vídeo)
+- isVideo: boolean (checkbox)
+- localOnly: boolean (checkbox - se marcado, adiciona tag "🔥 Local Only")
+- active: boolean (ativar/desativar experiência)
+
+### 2. DASHBOARD CLIENTE - Integrar Experiências
+NO TOPO do dashboard existente, ANTES de qualquer conteúdo atual, adicionar:
+
+```html
+<!-- Seção hero -->
+<div style="text-align: center; padding: 40px; background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%);">
+  <h2 style="font-size: 48px; margin-bottom: 10px;">Build Your Brazilian Journey</h2>
+  <p style="color: #888;">Add authentic experiences to your trip • Click to add to cart</p>
+</div>
+
+<!-- Tabs de categorias -->
+<div style="display: flex; gap: 10px; overflow-x: auto; margin-bottom: 30px;">
+  [Renderizar categorias dinamicamente]
+</div>
+
+<!-- Grid de experiências -->
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+  [Renderizar cards de experiências do banco de dados]
+</div>
+3. ESTRUTURA DO CARD DE EXPERIÊNCIA
+Cada experiência deve ser renderizada como:
+
+Imagem/vídeo de fundo
+Badge "🔥 Local Only" se aplicável
+Título, descrição, duração
+Preço destacado em dourado (#FFD700)
+Botão "Add +" que adiciona ao carrinho
+
+4. FUNCIONALIDADE DO CARRINHO
+
+Criar carrinho flutuante no canto inferior direito
+Mostrar contador de itens
+Ao clicar, mostrar resumo com:
+
+Lista de experiências selecionadas
+Total em USD
+Botão "Send to WhatsApp" que gera mensagem
+
+
+
+5. IMPORTANTE - NÃO QUEBRAR O EXISTENTE
+
+Manter TODAS as funcionalidades atuais do dashboard
+Adicionar as experiências ACIMA do conteúdo existente
+Não alterar rotas ou autenticação existentes
+Preservar o estilo visual dark/premium atual
+
+6. BANCO DE DADOS
+Criar nova collection/tabela:
+experiences {
+  id: auto_increment,
+  title: string,
+  description: string,
+  price: decimal,
+  duration: string,
+  category: string,
+  mediaUrl: string,
+  isVideo: boolean,
+  localOnly: boolean,
+  active: boolean,
+  createdAt: timestamp
+}
+7. FLUXO DE DADOS
+Admin cadastra experiência → Salva no DB → Cliente vê no dashboard →
+Adiciona ao carrinho → Gera mensagem WhatsApp com lista de experiências
+8. MENSAGEM WHATSAPP (exemplo)
+"Hi! I'm interested in these experiences:
+
+Real Favela + Samba Night ($150)
+Feijoada with Brazilian Grandma ($80)
+Hidden Beach with Fishermen ($120)
+Total: $350 USD
+My travel dates: [dates from profile]"
+
+MANTENHA O CÓDIGO LIMPO, MODULAR E COMENTE AS PRINCIPAIS FUNÇÕES.

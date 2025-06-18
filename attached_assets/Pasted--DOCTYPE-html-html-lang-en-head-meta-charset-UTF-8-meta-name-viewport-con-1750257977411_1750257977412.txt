@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brasil Unboxed - Your Journey</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            padding: 20px 40px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 40px;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(255,215,0,0.1) 0%, transparent 70%);
+        }
+        
+        .hero h2 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .hero p {
+            font-size: 18px;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        
+        /* Category Tabs */
+        .categories {
+            display: flex;
+            gap: 10px;
+            padding: 0 40px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        
+        .category-tab {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+        
+        .category-tab:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .category-tab.active {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border-color: transparent;
+            color: #000;
+            font-weight: 600;
+        }
+        
+        /* Experience Grid */
+        .experiences-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 0 40px 40px;
+        }
+        
+        /* Experience Card */
+        .experience-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .experience-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,215,0,0.3);
+            box-shadow: 0 10px 30px rgba(255,215,0,0.1);
+        }
+        
+        .card-media {
+            position: relative;
+            height: 200px;
+            background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+            overflow: hidden;
+        }
+        
+        .card-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .card-media video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .play-button::after {
+            content: '▶';
+            color: #FFD700;
+            font-size: 20px;
+            margin-left: 4px;
+        }
+        
+        .tag-local-only {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(45deg, #FF4500, #FF6347);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .tag-local-only::before {
+            content: '🔥';
+        }
+        
+        .card-content {
+            padding: 20px;
+        }
+        
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .card-description {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #FFD700;
+        }
+        
+        .price span {
+            font-size: 14px;
+            color: #888;
+            font-weight: 400;
+        }
+        
+        .add-button {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .add-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255,215,0,0.3);
+        }
+        
+        /* Duration Badge */
+        .duration {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .duration::before {
+            content: '⏱';
+        }
+        
+        /* Floating Cart Button */
+        .cart-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255,215,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .cart-float:hover {
+            transform: scale(1.1);
+        }
+        
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #FF4500;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .cart-icon {
+            font-size: 24px;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>BRASIL UNBOXED</h1>
+    </div>
+    
+    <!-- Hero Section -->
+    <div class="hero">
+        <h2>Build Your Brazilian Journey</h2>
+        <p>Add authentic experiences to your trip • Click to add to cart</p>
+    </div>
+    
+    <!-- Category Tabs -->
+    <div class="categories">
+        <div class="category-tab active">All Experiences</div>
+        <div class="category-tab">🌅 Day Adventures</div>
+        <div class="category-tab">🏖️ Beach & Relax</div>
+        <div class="category-tab">🌙 Night Life</div>
+        <div class="category-tab">💎 Exclusive</div>
+        <div class="category-tab">🎭 Cultural</div>
+    </div>
+    
+    <!-- Experiences Grid -->
+    <div class="experiences-grid">
+        
+        <!-- Experience 1: Favela + Samba -->
+        <div class="experience-card">
+            <div class="card-media">
+                <img src="https://images.unsplash.com/photo-1583872392626-a0d5f9f3f7e3?w=400" alt="Favela Experience">
+                <div class="tag-local-only">Local Only</div>
+            </div>
+            <div class="card-content">
+                <div class="duration">4-6 hours</div>
+                <h3 class="card-title">Real Favela + Samba Night</h3>
+                <p class="card-description">Visit a real community with local guide, enjoy authentic samba with residents. No tourist traps.</p>
+                <div class="card-footer">
+                    <div class="price">$150 <span>/person</span></div>
+                    <button class="add-button">Add +</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Experience 2: Cooking Class -->
+        <div class="experience-card">
+            <div class="card-media">
+                <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400" alt="Cooking Experience">
+            </div>
+            <div class="card-content">
+                <div class="duration">3 hours</div>
+                <h3 class="card-title">Feijoada with Brazilian Grandma</h3>
+                <p class="card-description">Learn to cook Brazil's national dish in a real home. Includes market visit and cachaça tasting.</p>
+                <div class="card-footer">
+                    <div class="price">$80 <span>/person</span></div>
+                    <button class="add-button">Add +</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Experience 3: Secret Beach -->
+        <div class="experience-card">
+            <div class="card-media">
+                <img src="https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=400" alt="Secret Beach">
+                <div class="play-button"></div>
+                <div class="tag-local-only">Local Only</div>
+            </div>
+            <div class="card-content">
+                <div class="duration">Full day</div>
+                <h3 class="card-title">Hidden Beach with Fishermen</h3>
+                <p class="card-description">Boat trip to untouched beaches. Fresh fish BBQ on the sand. Only locals know this spot.</p>
+                <div class="card-footer">
+                    <div class="price">$120 <span>/person</span></div>
+                    <button class="add-button">Add +</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Experience 4: Night Driver -->
+        <div class="experience-card">
+            <div class="card-media">
+                <img src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400" alt="Night Life">
+            </div>
+            <div class="card-content">
+                <div class="duration">6 hours</div>
+                <h3 class="card-title">Night Driver & Local Guide</h3>
+                <p class="card-description">Personal driver who knows the best spots. Bar crawl, street food, complete safety.</p>
+                <div class="card-footer">
+                    <div class="price">$100 <span>/group</span></div>
+                    <button class="add-button">Add +</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Experience 5: Capoeira -->
+        <div class="experience-card">
+            <div class="card-media">
+                <img src="https://images.unsplash.com/photo-1546961329-78bef0414d7c?w=400" alt="Capoeira">
+                <div class="tag-local-only">Local Only</div>
+            </div>
+            <div class="card-content">
+                <div class="duration">2 hours</div>
+                <h3 class="card-title">Capoeira + History Lesson</h3>
+                <p class="card-description">Learn the martial art that slaves disguised as dance. Real masters, real history.</p>
+                <div class="card-footer">
+                    <div class="price">$60 <span>/person</span></div>
+                    <button class="add-button">Add +</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Experience 6: Blind Day -->
+        <div class="experience-card">
+            <div class="card-media">
+                <img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400" alt="Mystery">
+                <div class="play-button"></div>
+            </div>
+            <div class="card-content">
+                <div class="duration">Full day</div>
+                <h3 class="card-title">Blind Day Adventure</h3>
+                <p class="card-description">Choose a theme (food/nature/culture) and let us surprise you. 100% authentic, 0% tourist.</p>
+                <div class="card-footer">
+                    <div class="price">$180 <span>/person</span></div>
+                    <button class="add-button">Add +</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- Floating Cart -->
+    <div class="cart-float">
+        <span class="cart-icon">🛒</span>
+        <span class="cart-count">3</span>
+    </div>
+    
+</body>
+</html>
