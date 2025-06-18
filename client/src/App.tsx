@@ -11,6 +11,7 @@ import AIIntelligence from "@/pages/admin/ai-intelligence";
 import LeadsCRM from "@/pages/admin/leads-crm";
 import DestinationsAdmin from "@/pages/admin/destinations";
 import PackagesAdmin from "@/pages/admin/packages";
+import BrasilUnboxed from "@/pages/admin/brasil-unboxed";
 import ClientLogin from "@/pages/client-login";
 import ClientDashboard from "@/pages/client-dashboard";
 import NotFound from "@/pages/not-found";
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/admin/leads-crm" component={LeadsCRM} />
       <Route path="/admin/destinations" component={DestinationsAdmin} />
       <Route path="/admin/packages" component={PackagesAdmin} />
+      <Route path="/admin/brasil-unboxed" component={BrasilUnboxed} />
       <Route path="/client/login" component={ClientLogin} />
       <Route path="/client/dashboard" component={ClientDashboard} />
       <Route path="/dashboard" component={ClientDashboard} />

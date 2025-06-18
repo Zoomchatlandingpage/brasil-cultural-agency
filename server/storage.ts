@@ -209,6 +209,107 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
     };
     this.apiConfigs.set(amadeusConfig.id, amadeusConfig);
+
+    // Initialize BRASIL UNBOXED experiences
+    const experiences = [
+      {
+        title: "Real Favela + Samba Night",
+        description: "Visit a real community with local guide, enjoy authentic samba with residents. No tourist traps.",
+        price: "150.00",
+        duration: "4-6 hours",
+        category: "Cultural",
+        mediaUrl: "https://images.unsplash.com/photo-1583872392626-a0d5f9f3f7e3?w=400",
+        isVideo: false,
+        localOnly: true,
+        active: true
+      },
+      {
+        title: "Feijoada with Brazilian Grandma",
+        description: "Learn to cook Brazil's national dish in a real home. Includes market visit and cachaça tasting.",
+        price: "80.00",
+        duration: "3 hours",
+        category: "Cultural",
+        mediaUrl: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400",
+        isVideo: false,
+        localOnly: false,
+        active: true
+      },
+      {
+        title: "Hidden Beach with Fishermen",
+        description: "Boat trip to untouched beaches. Fresh fish BBQ on the sand. Only locals know this spot.",
+        price: "120.00",
+        duration: "Full day",
+        category: "Beach & Relax",
+        mediaUrl: "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=400",
+        isVideo: true,
+        localOnly: true,
+        active: true
+      },
+      {
+        title: "Night Driver & Local Guide",
+        description: "Personal driver who knows the best spots. Bar crawl, street food, complete safety.",
+        price: "100.00",
+        duration: "6 hours",
+        category: "Night Life",
+        mediaUrl: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400",
+        isVideo: false,
+        localOnly: false,
+        active: true
+      },
+      {
+        title: "Capoeira + History Lesson",
+        description: "Learn the martial art that slaves disguised as dance. Real masters, real history.",
+        price: "60.00",
+        duration: "2 hours",
+        category: "Cultural",
+        mediaUrl: "https://images.unsplash.com/photo-1546961329-78bef0414d7c?w=400",
+        isVideo: false,
+        localOnly: true,
+        active: true
+      },
+      {
+        title: "Christ the Redeemer VIP Access",
+        description: "Skip all lines, private guide, best photo spots. Early morning exclusive access.",
+        price: "200.00",
+        duration: "3 hours",
+        category: "Exclusive",
+        mediaUrl: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5e?w=400",
+        isVideo: false,
+        localOnly: false,
+        active: true
+      },
+      {
+        title: "Amazon River Deep Expedition",
+        description: "3-day deep jungle experience. Sleep with indigenous family, learn survival skills.",
+        price: "350.00",
+        duration: "3 days",
+        category: "Day Adventures",
+        mediaUrl: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=400",
+        isVideo: true,
+        localOnly: true,
+        active: true
+      },
+      {
+        title: "Ipanema Sunset & Cocktails",
+        description: "Premium beach spot, professional bartender, live bossa nova. Perfect golden hour.",
+        price: "90.00",
+        duration: "2 hours",
+        category: "Beach & Relax",
+        mediaUrl: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=400",
+        isVideo: false,
+        localOnly: false,
+        active: true
+      }
+    ];
+
+    experiences.forEach(exp => {
+      const experience: Experience = {
+        id: this.currentId++,
+        ...exp,
+        createdAt: new Date(),
+      };
+      this.experiences.set(experience.id, experience);
+    });
   }
 
   // Admin users
@@ -855,6 +956,41 @@ export class DatabaseStorage implements IStorage {
       .where(eq(travelOperators.id, id))
       .returning();
     return operator || undefined;
+  }
+
+  // BRASIL UNBOXED - Experiences Implementation
+  async getAllExperiences(): Promise<Experience[]> {
+    return await db.select().from(experiences);
+  }
+
+  async getActiveExperiences(): Promise<Experience[]> {
+    return await db.select().from(experiences).where(eq(experiences.active, true));
+  }
+
+  async getExperiencesByCategory(category: string): Promise<Experience[]> {
+    return await db.select().from(experiences).where(eq(experiences.category, category));
+  }
+
+  async createExperience(experience: InsertExperience): Promise<Experience> {
+    const [newExperience] = await db
+      .insert(experiences)
+      .values(experience)
+      .returning();
+    return newExperience;
+  }
+
+  async updateExperience(id: number, updates: Partial<InsertExperience>): Promise<Experience | undefined> {
+    const [experience] = await db
+      .update(experiences)
+      .set(updates)
+      .where(eq(experiences.id, id))
+      .returning();
+    return experience || undefined;
+  }
+
+  async deleteExperience(id: number): Promise<boolean> {
+    const result = await db.delete(experiences).where(eq(experiences.id, id));
+    return (result.rowCount || 0) > 0;
   }
 }
 

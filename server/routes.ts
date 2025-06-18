@@ -5,7 +5,7 @@ import { authMiddleware, createSession, destroySession } from "./services/auth";
 import { aiEngine } from "./services/ai-engine";
 import { travelApis } from "./services/travel-apis";
 import { emailService } from "./services/email";
-import { insertUserSchema, insertLeadSchema, insertDestinationSchema, insertTravelPackageSchema, insertBookingSchema } from "@shared/schema";
+import { insertUserSchema, insertLeadSchema, insertDestinationSchema, insertTravelPackageSchema, insertBookingSchema, insertExperienceSchema } from "@shared/schema";
 import { z } from "zod";
 import clientRoutes from './client-routes';
 
@@ -246,6 +246,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       totalRevenue,
       conversionRate: Math.round(conversionRate),
     });
+  });
+
+  // BRASIL UNBOXED - Experiences API Routes
+  app.get("/api/experiences", async (req, res) => {
+    try {
+      const { category, active } = req.query;
+      
+      let experiences;
+      if (category && category !== 'All Experiences') {
+        experiences = await storage.getExperiencesByCategory(category as string);
+      } else if (active === 'true') {
+        experiences = await storage.getActiveExperiences();
+      } else {
+        experiences = await storage.getAllExperiences();
+      }
+      
+      res.json(experiences);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch experiences" });
+    }
+  });
+
+  app.post("/api/experiences", authMiddleware, async (req, res) => {
+    try {
+      const experienceData = insertExperienceSchema.parse(req.body);
+      const experience = await storage.createExperience(experienceData);
+      res.json(experience);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid experience data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create experience" });
+      }
+    }
+  });
+
+  app.put("/api/experiences/:id", authMiddleware, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertExperienceSchema.partial().parse(req.body);
+      const experience = await storage.updateExperience(id, updates);
+      
+      if (!experience) {
+        return res.status(404).json({ message: "Experience not found" });
+      }
+      
+      res.json(experience);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid experience data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to update experience" });
+      }
+    }
+  });
+
+  app.delete("/api/experiences/:id", authMiddleware, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteExperience(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Experience not found" });
+      }
+      
+      res.json({ message: "Experience deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete experience" });
+    }
   });
 
   // Real-time pricing
