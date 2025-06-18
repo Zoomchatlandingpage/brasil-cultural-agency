@@ -1,144 +1,112 @@
 # Brasil Cultural Agency - AI-Powered Travel Platform
 
-A comprehensive AI-powered travel platform specializing in Brazilian cultural experiences, featuring intelligent conversation systems, real-time travel API integration, and advanced booking management.
+Uma plataforma completa de viagens com foco em experiências culturais autênticas brasileiras, combinando BRASIL UNBOXED com busca de voos e hotéis em uma interface integrada.
 
-## Features
+## 🚀 Funcionalidades Principais
 
-### 🤖 AI-Powered Chat System
-- Intelligent profile detection and personalized recommendations
-- Real-time conversation analysis and lead generation
-- Dynamic travel package creation based on user preferences
+### Dashboard do Cliente Integrado
+- **BRASIL UNBOXED**: Experiências culturais autênticas
+- **Busca de Voos**: Sistema de pesquisa com múltiplas companhias aéreas
+- **Busca de Hotéis**: Sistema de pesquisa com hotéis de qualidade
+- Interface em abas para navegação intuitiva
+- Design responsivo e moderno
 
-### 🌎 Travel Services Integration
-- Flight booking through multiple APIs (Amadeus, Skyscanner)
-- Hotel reservations with real-time pricing
-- Cultural experience packages tailored to Brazilian destinations
+### Painel Administrativo Completo
+- Gerenciamento de experiências e destinos
+- Sistema CRM para leads e clientes
+- Analytics e relatórios de negócio
+- Configurações de API e integrações
+- Controle de inteligência artificial
 
-### 📊 Admin Dashboard
-- Comprehensive lead management system
-- Real-time booking analytics
-- Content management for destinations and packages
-- AI knowledge base administration
+## 🛠️ Tecnologias
 
-### 🎯 Destinations Featured
-- **Rio de Janeiro**: Iconic landmarks, cultural experiences, carnival
-- **Salvador**: Afro-Brazilian heritage, historic Pelourinho
-- **Chapada Diamantina**: Natural beauty, adventure tourism
+- **Frontend**: React.js + TypeScript + Tailwind CSS
+- **Backend**: Node.js + Express + TypeScript
+- **Database**: PostgreSQL + Drizzle ORM
+- **UI**: Shadcn/ui + Radix UI
+- **State**: TanStack Query
 
-## Technology Stack
+## 📦 Instalação
 
-- **Frontend**: React 18, TypeScript, Tailwind CSS, Wouter (routing)
-- **Backend**: Node.js, Express, TypeScript
-- **Database**: In-memory storage with future PostgreSQL support
-- **Authentication**: Session-based with bcrypt
-- **UI Components**: Shadcn/ui, Radix UI primitives
-- **State Management**: TanStack Query
-- **Email**: Nodemailer integration
-
-## Getting Started
-
-### Prerequisites
-- Node.js 18 or higher
-- npm or yarn
-
-### Installation
-
-1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/brasil-cultural-agency.git
+# Clone o repositório
+git clone https://github.com/seu-usuario/brasil-cultural-agency.git
 cd brasil-cultural-agency
-```
 
-2. Install dependencies
-```bash
+# Instale as dependências
 npm install
-```
 
-3. Start the development server
-```bash
+# Configure o banco de dados
+npm run db:push
+
+# Inicie o servidor de desenvolvimento
 npm run dev
 ```
 
-The application will be available at `http://localhost:5000`
+## 🔧 Configuração
 
-### Admin Access
-- Navigate to `/admin-login`
-- Default credentials: `admin` / `admin123`
-
-## Project Structure
-
-```
-├── client/                 # Frontend React application
-│   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── pages/         # Application pages
-│   │   └── lib/           # Utilities and API client
-├── server/                # Backend Express application
-│   ├── routes.ts          # API routes
-│   ├── storage.ts         # Data layer
-│   └── services/          # Business logic services
-├── shared/                # Shared types and schemas
-└── README.md
-```
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/login` - Admin login
-- `POST /api/auth/logout` - Logout
-- `GET /api/auth/me` - Get current user
-
-### Chat & AI
-- `POST /api/chat/message` - Send chat message
-- `POST /api/leads/capture-email` - Capture lead email
-
-### Travel Data
-- `GET /api/destinations` - List destinations
-- `GET /api/travel-packages` - List travel packages
-- `POST /api/bookings` - Create booking
-
-### Admin Management
-- `GET /api/admin/leads` - List all leads
-- `GET /api/admin/bookings` - List all bookings
-- `POST /api/admin/destinations` - Create destination
-- `POST /api/admin/travel-packages` - Create travel package
-
-## Environment Variables
-
-Create a `.env` file in the root directory:
-
+### Variáveis de Ambiente
 ```env
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-
-# Travel API Keys (Optional)
-AMADEUS_API_KEY=your-amadeus-key
-SKYSCANNER_API_KEY=your-skyscanner-key
-BOOKING_API_KEY=your-booking-key
-
-# Session Configuration
+DATABASE_URL=postgresql://...
 SESSION_SECRET=your-session-secret
+
+# APIs Externas (Opcionais)
+AMADEUS_API_KEY=your-amadeus-key
+BOOKING_API_KEY=your-booking-key
+SENDGRID_API_KEY=your-sendgrid-key
 ```
 
-## Contributing
+## 🌐 Rotas Principais
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-feature`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature/new-feature`)
-5. Create a Pull Request
+- `/` - Landing page
+- `/client-dashboard-integrated` - Dashboard completo do cliente
+- `/admin` - Painel administrativo
+- `/admin/brasil-unboxed` - Gerenciamento de experiências
 
-## License
+## 📋 APIs Disponíveis
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### Experiências
+- `GET /api/experiences` - Lista experiências
+- `POST /api/experiences` - Cria experiência
+- `PUT /api/experiences/:id` - Atualiza experiência
 
-## Support
+### Busca de Viagens
+- `POST /api/search/flights` - Busca voos
+- `POST /api/search/hotels` - Busca hotéis
 
-For support and questions, please create an issue in the GitHub repository.
+### Administrativo
+- `GET /api/admin/*` - Rotas do painel admin
+- `GET /api/analytics/*` - Dados de analytics
 
----
+## 🚢 Deploy
 
-**Brasil Cultural Agency** - Discover Brazil's rich culture through AI-powered travel experiences.
+### Replit Deployment
+1. Conecte seu repositório GitHub ao Replit
+2. Configure as variáveis de ambiente
+3. Execute `npm run build`
+4. Deploy automático via Replit
+
+### Produção
+1. Configure banco PostgreSQL em produção
+2. Defina variáveis de ambiente
+3. Execute migrações: `npm run db:push`
+4. Build: `npm run build`
+5. Start: `npm start`
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
+3. Commit: `git commit -m 'Adiciona nova funcionalidade'`
+4. Push: `git push origin feature/nova-funcionalidade`
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## 📞 Contato
+
+Brasil Cultural Agency - contato@brasilcultural.com
+
+Link do Projeto: [https://github.com/seu-usuario/brasil-cultural-agency](https://github.com/seu-usuario/brasil-cultural-agency)
