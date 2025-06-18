@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Globe,
-  Flame
+  Flame,
+  Star
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
@@ -25,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 const navigationItems = [
   { icon: Flame, label: "Enhanced Dashboard", href: "/admin/enhanced-dashboard", active: true },
   { icon: BarChart3, label: "Classic Dashboard", href: "/admin/dashboard", active: false },
+  { icon: Star, label: "BRASIL UNBOXED", href: "/admin/brasil-unboxed", active: false },
   { icon: Brain, label: "AI Intelligence", href: "/admin/ai-intelligence", active: false },
   { icon: Users, label: "Leads & CRM", href: "/admin/leads-crm", active: false },
   { icon: MapPin, label: "Destinations", href: "/admin/destinations", active: false },
